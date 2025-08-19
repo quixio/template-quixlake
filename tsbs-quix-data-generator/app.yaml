@@ -1,0 +1,42 @@
+name: tsbs-quix-data-generator
+language: go
+variables:
+  - name: output
+    inputType: OutputTopic
+    description: This is the Quix Topic that will receive the generated data
+    defaultValue: tsbs_data
+    required: true
+  - name: TSBS_USE_CASE
+    inputType: FreeText
+    description: 'The type of data; options: cpu-only, devops, iot'
+    defaultValue: cpu-only
+    required: true
+  - name: TSBS_SEED
+    inputType: FreeText
+    description: 'an integer PRNG seed for deterministic generation. '
+    defaultValue: 123
+    required: true
+  - name: TSBS_SCALE
+    inputType: FreeText
+    description: The number of devices / trucks to generate data for
+    defaultValue: 5
+    required: true
+  - name: TSBS_TIMESTAMP_START
+    inputType: FreeText
+    description: A start time for the data's timestamps, formatted as Y-M-DTH:M:SZ
+    defaultValue: 2025-01-05T00:00:00Z
+    required: true
+  - name: TSBS_TIMESTAMP_END
+    inputType: FreeText
+    description: The end time for the data's timestamps, formatted as Y-M-DTH:M:SZ
+    defaultValue: 2025-01-06T00:00:00Z
+    required: true
+  - name: TSBS_LOG_INTERVAL
+    inputType: FreeText
+    description: how much time should be between each reading per device, formatted as Nt
+    defaultValue: 10s
+    required: true
+dockerfile: dockerfile
+runEntryPoint: main.sh
+defaultFile: main.sh
+libraryItemId: tsbs-quix-data-generator
