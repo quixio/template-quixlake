@@ -166,3 +166,7 @@ deployments:
         description: The default database name to initialize PostgreSQL with
         required: true
         value: quix
+
+# This section describes the Topics of the data pipeline
+topics:
+  - name: tsbs_data
