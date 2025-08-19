@@ -210,6 +210,35 @@ deployments:
         description: how much time should be between each reading per device, formatted as Nt
         required: true
         value: 10s
+  - name: minio
+    application: minio
+    version: latest
+    deploymentType: Service
+    resources:
+      cpu: 200
+      memory: 500
+      replicas: 1
+    publicAccess:
+      enabled: true
+      urlPrefix: minio
+    network:
+      serviceName: minio
+      ports:
+        - port: 80
+          targetPort: 9001
+        - port: 9000
+          targetPort: 9000
+    variables:
+      - name: MINIO_ROOT_USER
+        inputType: FreeText
+        description: The root username to initialize Minio with
+        required: true
+        value: admin
+      - name: MINIO_ROOT_PASSWORD
+        inputType: Secret
+        description: The root password to initialize MongoDB with
+        required: true
+        secretKey: minio_password
 
 # This section describes the Topics of the data pipeline
 topics:
