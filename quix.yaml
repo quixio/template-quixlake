@@ -221,6 +221,9 @@ deployments:
     publicAccess:
       enabled: true
       urlPrefix: minio
+    state:
+      enabled: true
+      size: 5
     network:
       serviceName: minio
       ports:
