@@ -1,0 +1,8 @@
+FROM quay.io/minio/minio:RELEASE.2025-07-23T15-54-02Z
+
+EXPOSE 9000 9001
+
+# Define the default command to run when starting the container
+COPY init.sh /init.sh
+RUN chmod +x /init.sh
+ENTRYPOINT ["/init.sh"]
