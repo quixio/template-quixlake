@@ -166,6 +166,50 @@ deployments:
         description: The default database name to initialize PostgreSQL with
         required: true
         value: quix
+  - name: TSBS Quix Data Generator
+    application: tsbs-quix-data-generator
+    version: latest
+    deploymentType: Job
+    resources:
+      cpu: 200
+      memory: 1000
+      replicas: 1
+    variables:
+      - name: output
+        inputType: OutputTopic
+        description: This is the Quix Topic that will receive the generated data
+        required: true
+        value: tsbs_data
+      - name: TSBS_USE_CASE
+        inputType: FreeText
+        description: 'The type of data; options: cpu-only, devops, iot'
+        required: true
+        value: cpu-only
+      - name: TSBS_SEED
+        inputType: FreeText
+        description: 'an integer PRNG seed for deterministic generation. '
+        required: true
+        value: 123
+      - name: TSBS_SCALE
+        inputType: FreeText
+        description: The number of devices / trucks to generate data for
+        required: true
+        value: 5
+      - name: TSBS_TIMESTAMP_START
+        inputType: FreeText
+        description: A start time for the data's timestamps, formatted as Y-M-DTH:M:SZ
+        required: true
+        value: 2025-01-05T00:00:00Z
+      - name: TSBS_TIMESTAMP_END
+        inputType: FreeText
+        description: The end time for the data's timestamps, formatted as Y-M-DTH:M:SZ
+        required: true
+        value: 2025-01-06T00:00:00Z
+      - name: TSBS_LOG_INTERVAL
+        inputType: FreeText
+        description: how much time should be between each reading per device, formatted as Nt
+        required: true
+        value: 10s
 
 # This section describes the Topics of the data pipeline
 topics:
