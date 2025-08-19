@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Info Dialog</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-container { max-width: 600px; margin: 0 auto; }
+        .overview-section { 
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); 
+            border-radius: 12px; 
+            padding: 20px; 
+            border: 1px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+        .grid-container {
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 12px;
+        }
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        .path-display {
+            background: #f1f3f4; 
+            padding: 4px 8px; 
+            border-radius: 4px; 
+            display: inline-block; 
+            max-width: 100%; 
+            overflow-x: auto; 
+            white-space: nowrap; 
+            font-size: 12px;
+            font-family: monospace;
+        }
+        .test-case {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        h1 { color: #2c3e50; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Info Dialog Display Tests</h1>
+        
+        <div class="test-case">
+            <div class="test-title">Test 1: Short Path (Table Level)</div>
+            <div class="overview-section">
+                <h4 style="margin: 0 0 16px 0;">📊 Overview</h4>
+                <div class="grid-container">
+                    <div class="full-width">
+                        <strong>Table Name:</strong><br>
+                        <code class="path-display">my_table</code>
+                    </div>
+                    <div>
+                        <strong>Total Size:</strong><br>
+                        125.3 MB
+                    </div>
+                    <div>
+                        <strong>Total Files:</strong><br>
+                        42
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-case">
+            <div class="test-title">Test 2: Long Path (Deep Partition) - Should Handle Overflow</div>
+            <div class="overview-section">
+                <h4 style="margin: 0 0 16px 0;">📊 Overview</h4>
+                <div class="grid-container">
+                    <div class="full-width">
+                        <strong>Partition Path:</strong><br>
+                        <code class="path-display">opc_ua_table_with_weather/machine=3D_PRINTER_0/experiment_name=toner_test_v1.4/year=2025/month=08/day=02/hour=14</code>
+                    </div>
+                    <div>
+                        <strong>Partition Size:</strong><br>
+                        15.7 MB
+                    </div>
+                    <div>
+                        <strong>Files in Partition:</strong><br>
+                        8
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-case">
+            <div class="test-title">Test 3: Very Long Path - Horizontal Scroll</div>
+            <div class="overview-section">
+                <h4 style="margin: 0 0 16px 0;">📊 Overview</h4>
+                <div class="grid-container">
+                    <div class="full-width">
+                        <strong>Partition Path:</strong><br>
+                        <code class="path-display">extremely_long_table_name_for_testing_purposes/region=north_america/country=united_states/state=california/city=san_francisco/district=financial_district/building=tower_42/floor=25/department=engineering/team=backend/project=data_pipeline/version=2.3.1/environment=production/year=2025/month=08/day=02</code>
+                    </div>
+                    <div>
+                        <strong>Partition Size:</strong><br>
+                        8.2 MB
+                    </div>
+                    <div>
+                        <strong>Files in Partition:</strong><br>
+                        3
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-case">
+            <div class="test-title">Expected Behavior:</div>
+            <ul>
+                <li>✅ Path should be contained within the box</li>
+                <li>✅ Long paths should show horizontal scroll bar</li>
+                <li>✅ Size and file count should display correctly</li>
+                <li>✅ Grid should be responsive</li>
+                <li>✅ Full-width path doesn't break grid layout</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

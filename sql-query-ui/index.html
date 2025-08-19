@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Query Console</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Chart.js for waveform visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Chart.js date adapter for time-based axes -->
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.1/dist/chartjs-adapter-moment.min.js"></script>
+</head>
+<body>
+    <!-- Top Header with Logo -->
+    <div class="top-header">
+        <div class="logo-container">
+            <!-- Quix Logo SVG -->
+            <svg class="quix-logo" width="80" height="24" viewBox="0 0 80 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Quix Wave -->
+                <path d="M2 12C2 12 5 4 8 12C11 20 14 4 17 12C20 20 23 4 26 12" stroke="#0066FF" stroke-width="2" stroke-linecap="round"/>
+                <!-- Q -->
+                <circle cx="38" cy="12" r="8" fill="none" stroke="#0066FF" stroke-width="2"/>
+                <line x1="42" y1="16" x2="46" y2="20" stroke="#0066FF" stroke-width="2" stroke-linecap="round"/>
+                <!-- uix text -->
+                <text x="48" y="17" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">uix</text>
+            </svg>
+            <span class="logo-text">Lake</span>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- Left Sidebar - Hive Tree -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3>Tables & Partitions</h3>
+                <div class="sidebar-actions">
+                    <button id="refresh-tree" class="refresh-btn" title="Refresh tree">↻</button>
+                </div>
+            </div>
+            <div id="hive-tree" class="tree-container">
+                <div class="loading">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Horizontal Resizer -->
+        <div class="horizontal-resizer" id="horizontal-resizer"></div>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Top Toolbar -->
+            <div class="top-toolbar">
+                <div class="toolbar-left">
+                    <button id="delete-btn" class="toolbar-btn delete-btn" disabled>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                        </svg>
+                        Delete
+                    </button>
+                    <button id="compact-btn" class="toolbar-btn compact-btn" disabled>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                        </svg>
+                        Compact
+                    </button>
+                    <button id="repartition-btn" class="toolbar-btn repartition-btn" disabled>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2l-5.5 9h11z M17.5 11L12 20l-5.5-9z"/>
+                        </svg>
+                        Repartition
+                    </button>
+                </div>
+                <div class="toolbar-right">
+                    <button id="info-btn" class="toolbar-btn info-btn" disabled>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+                        </svg>
+                        Info
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Hidden elements for compatibility -->
+            <div id="selected-folder" class="selected-folder" style="display: none;">
+                <strong>Selected:</strong> <span id="selected-path"></span>
+                <button id="clear-selection" class="clear-selection-btn">✕</button>
+            </div>
+
+            <!-- SQL Query Section -->
+            <div class="query-section">
+                <div class="query-header">
+                    <div class="query-header-left">
+                        <h3>Query Editor</h3>
+                    </div>
+                    <div class="query-header-right">
+                        <label class="query-option-label">
+                            <input type="checkbox" id="union-by-name" class="query-option-checkbox">
+                            <span class="query-option-text">Union by name</span>
+                            <span class="query-option-help" title="Enable schema evolution support - matches columns by name instead of position">ℹ️</span>
+                        </label>
+                        <label class="query-option-label">
+                            <input type="checkbox" id="explain-analyze" class="query-option-checkbox">
+                            <span class="query-option-text">Explain analyze</span>
+                            <span class="query-option-help" title="Show query execution plan and performance analysis (slower)">⚡</span>
+                        </label>
+                    </div>
+                </div>
+                <textarea id="sql-editor" placeholder="SELECT * FROM events_hive LIMIT 10;">SELECT
+    *
+FROM :selected:
+LIMIT 10</textarea>
+                <div class="query-actions">
+                    <button id="run-query" class="query-btn">Run Query</button>
+                    <button id="clear-query" class="clear-btn">Clear</button>
+                </div>
+            </div>
+
+            <!-- Resizer -->
+            <div class="resizer" id="resizer"></div>
+
+            <!-- Results Section -->
+            <div class="results-section">
+                <div class="results-header">
+                    <div class="results-tabs">
+                        <button class="tab-button active" data-tab="results">Query Results</button>
+                        <button class="tab-button" data-tab="waveform">Waveform</button>
+                        <button class="tab-button" data-tab="explain" id="explain-tab">Execution Plan</button>
+                        <button class="tab-button" data-tab="tasks">Background Tasks</button>
+                    </div>
+                    <div class="results-meta">
+                        <div id="query-status" class="status"></div>
+                        <div id="query-timing" class="query-timing"></div>
+                    </div>
+                </div>
+                
+                <!-- Results Tab Content -->
+                <div id="results-container" class="results-container tab-content active" data-tab="results">
+                    <div class="no-results">Run a query to see results</div>
+                </div>
+                
+                <!-- Waveform Tab Content -->
+                <div id="waveform-container" class="results-container tab-content" data-tab="waveform">
+                    <div class="waveform-controls">
+                        <div class="waveform-settings">
+                            <label>X-Axis Column:
+                                <select id="x-axis-column" class="waveform-select">
+                                    <option value="">Select column...</option>
+                                </select>
+                            </label>
+                            <label>Y-Axis Column(s):
+                                <select id="y-axis-columns" class="waveform-select" multiple>
+                                </select>
+                            </label>
+                            <button id="plot-waveform" class="plot-btn">Plot</button>
+                        </div>
+                    </div>
+                    <div class="waveform-chart-container">
+                        <canvas id="waveform-chart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Explain Tab Content -->
+                <div id="explain-container" class="results-container tab-content" data-tab="explain">
+                    <div class="explain-output">
+                        <pre id="explain-content" class="explain-pre">Enable "Explain analyze" and run a query to see the execution plan</pre>
+                    </div>
+                </div>
+                
+                <!-- Tasks Tab Content -->
+                <div id="tasks-container" class="results-container tab-content" data-tab="tasks">
+                    <div class="tasks-header" style="padding: 16px; border-bottom: 1px solid #e8eaed;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="margin: 0; font-size: 16px; color: #202124;">Background Tasks</h3>
+                            <button id="refresh-tasks" class="button secondary" style="padding: 6px 12px; font-size: 13px;">
+                                <span style="margin-right: 4px;">↻</span> Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div id="tasks-list" class="tasks-list" style="padding: 16px;">
+                        <div class="no-tasks" style="text-align: center; color: #5f6368; padding: 40px;">
+                            No background tasks
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Dialog Modal -->
+    <div id="info-dialog" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="info-dialog-title">Table Information</h3>
+                <button class="modal-close" id="info-dialog-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="info-content" style="font-size: 14px; line-height: 1.6;">
+                    <div class="loading">Loading table information...</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="info-close" class="btn-secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Dialog Modal -->
+    <div id="delete-dialog" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Delete Data</h3>
+                <button class="modal-close" id="delete-dialog-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="delete-table-name">Table Name:</label>
+                    <input type="text" id="delete-table-name" readonly class="form-input">
+                </div>
+                
+                <div class="form-group">
+                    <label>Delete Mode:</label>
+                    <div style="margin-top: 8px;">
+                        <label class="checkbox-label">
+                            <input type="radio" name="delete-mode" value="conditional" checked>
+                            Conditional Delete (WHERE clause)
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="radio" name="delete-mode" value="truncate">
+                            Truncate Table (Delete all data)
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="radio" name="delete-mode" value="partition">
+                            Delete Specific Partitions
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="radio" name="delete-mode" value="drop">
+                            Drop Entire Table
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group" id="where-clause-group">
+                    <label for="where-clause">WHERE Clause:</label>
+                    <textarea id="where-clause" placeholder="e.g., machine = '3D_PRINTER_0' AND experiment_name = 'test'" class="form-input" rows="3"></textarea>
+                    <small class="form-help">SQL condition to filter which rows to delete</small>
+                </div>
+                
+                <div class="form-group" id="partitions-group" style="display: none;">
+                    <label for="partitions-list">Partitions to Delete:</label>
+                    <textarea id="partitions-list" placeholder="e.g., year=2025/month=07/day=29, year=2025/month=07/day=30" class="form-input" rows="3"></textarea>
+                    <small class="form-help">Comma-separated list of partition paths</small>
+                </div>
+                
+                <div style="background: #fef7e0; border: 1px solid #fbcc02; border-radius: 6px; padding: 12px; margin: 16px 0;">
+                    <strong style="color: #f57c00;">⚠️ Warning:</strong> This operation cannot be undone. Make sure you have backups if needed.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="delete-cancel" class="btn-secondary">Cancel</button>
+                <button id="delete-execute" class="btn-primary" style="background-color: #d93025;">Delete Data</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Compact Dialog Modal -->
+    <div id="compact-dialog" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Compact Table</h3>
+                <button class="modal-close" id="compact-dialog-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="compact-table-name">Table Name:</label>
+                    <input type="text" id="compact-table-name" readonly class="form-input">
+                </div>
+                
+                <div class="info-box" style="margin-bottom: 16px;">
+                    <p><strong>🗜️ File Optimization:</strong> Compact will merge small files and fix schema inconsistencies while preserving your existing partition structure.</p>
+                    <ul style="margin: 8px 0 0 20px; font-size: 14px;">
+                        <li>Combines small files for better performance</li>
+                        <li>Fixes schema mismatches using union_by_name</li>
+                        <li>Preserves existing partition hierarchy</li>
+                        <li>Does not change partition structure</li>
+                    </ul>
+                    <p style="margin: 8px 0 0 0; font-size: 13px; color: #5f6368;">
+                        <strong>Need to change partition structure?</strong> Use the "Repartition" feature instead.
+                    </p>
+                </div>
+                
+                <div class="form-group" id="table-info" style="display: none;">
+                    <div style="background: #f8f9fa; border: 1px solid #e8eaed; border-radius: 6px; padding: 12px; font-size: 13px; color: #5f6368;">
+                        <div id="table-info-content"></div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="target-file-size">Target File Size (MB):</label>
+                    <input type="number" id="target-file-size" value="128" min="1" max="1024" class="form-input">
+                    <small class="form-help">Target size for each compacted file</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="compact-cancel" class="btn-secondary">Cancel</button>
+                <button id="compact-execute" class="btn-primary">Compact Table</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Repartition Dialog -->
+    <div id="repartition-dialog" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Repartition Table</h3>
+                <button class="modal-close" id="repartition-dialog-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="repartition-table-name">Table Name:</label>
+                    <input type="text" id="repartition-table-name" readonly class="form-input">
+                </div>
+                
+                <div class="info-box" id="repartition-info" style="margin-bottom: 16px;">
+                    <p><strong>⚠️ Warning:</strong> Repartitioning will completely restructure your table's partition hierarchy. This operation:</p>
+                    <ul style="margin: 8px 0;">
+                        <li>Reads all data from the table</li>
+                        <li>Creates a backup of existing data</li>
+                        <li>Rewrites data with new partition scheme</li>
+                        <li>Can take significant time for large tables</li>
+                    </ul>
+                </div>
+                
+                <div class="form-group">
+                    <label for="repartition-hive-columns">Partition Columns:</label>
+                    <input type="text" id="repartition-hive-columns" placeholder="e.g., machine, experiment_name, year, month, day" class="form-input">
+                    <small class="form-help">Comma-separated list of columns to partition by (order matters!)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="repartition-timestamp-column">Timestamp Column (optional):</label>
+                    <input type="text" id="repartition-timestamp-column" placeholder="e.g., ts_ms or timestamp" class="form-input">
+                    <small class="form-help">Column to use for time-based partitioning (year, month, day, hour)</small>
+                </div>
+                
+                <div class="form-group" id="repartition-timestamp-format-options">
+                    <label for="repartition-timestamp-format">Timestamp Partition Format:</label>
+                    <select id="repartition-timestamp-format" class="form-input">
+                        <option value="day">Day (year/month/day)</option>
+                        <option value="hour">Hour (year/month/day/hour)</option>
+                        <option value="month">Month (year/month)</option>
+                    </select>
+                    <small class="form-help">Granularity of time-based partitions</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="repartition-target-file-size">Target File Size (MB):</label>
+                    <input type="number" id="repartition-target-file-size" value="128" min="1" max="1024" class="form-input">
+                    <small class="form-help">Target size for each partitioned file</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="repartition-cancel" class="btn-secondary">Cancel</button>
+                <button id="repartition-execute" class="btn-primary">Repartition Table</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

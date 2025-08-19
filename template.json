@@ -1,0 +1,14 @@
+{
+  "TemplateId": "quixlake",
+  "Name": "QuixLake Template",
+  "SshUrl": "https://github.com/quixio/template-quixlake.git",
+  "Branch": "main",
+  "Description": "This template sets up a QuixLake instance and includes an example sink to show how to export data to it.",
+  "Tags": {
+    "languages": ["python"],
+    "category": ["sample", "demo"]
+  },
+  "ImageFile": "images/pipeline.png",
+  "ReadmeFile": "README.md",
+  "Published": true
+}

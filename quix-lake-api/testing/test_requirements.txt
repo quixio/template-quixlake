@@ -1,0 +1,3 @@
+# Test requirements for QuixLake API integration tests
+requests>=2.28.0
+pandas>=1.5.0

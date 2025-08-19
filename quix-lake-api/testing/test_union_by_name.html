@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Union By Name Fix</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        textarea { width: 100%; height: 100px; font-family: monospace; }
+        .options { margin: 10px 0; }
+        button { padding: 8px 16px; background: #1a73e8; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #1557b0; }
+        .results { margin-top: 20px; border: 1px solid #ddd; padding: 10px; }
+        pre { margin: 0; background: #f8f9fa; padding: 10px; overflow-x: auto; }
+        .sql-display { background: #e8f5e9; padding: 10px; margin: 10px 0; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test Union By Name Fix</h1>
+        
+        <div>
+            <h3>SQL Query:</h3>
+            <textarea id="query">SELECT * FROM perf_test LIMIT 5</textarea>
+            
+            <div class="options">
+                <label>
+                    <input type="checkbox" id="union_by_name"> Union by name
+                </label>
+                <label style="margin-left: 20px;">
+                    <input type="checkbox" id="explain"> Show Execution Plan
+                </label>
+            </div>
+            
+            <button onclick="runQuery()">Run Query</button>
+        </div>
+        
+        <div id="results" class="results" style="display: none;">
+            <h3>Modified SQL sent to backend:</h3>
+            <div id="modified-sql" class="sql-display"></div>
+            
+            <h3>Results:</h3>
+            <pre id="output"></pre>
+        </div>
+    </div>
+
+    <script>
+        async function runQuery() {
+            const query = document.getElementById('query').value;
+            const unionByName = document.getElementById('union_by_name').checked;
+            const explain = document.getElementById('explain').checked;
+            const resultsDiv = document.getElementById('results');
+            const outputDiv = document.getElementById('output');
+            const modifiedSqlDiv = document.getElementById('modified-sql');
+            
+            resultsDiv.style.display = 'block';
+            outputDiv.textContent = 'Running query...';
+            
+            // Build URL with parameters
+            let url = 'http://localhost:80/query';
+            const params = [];
+            if (unionByName) params.push('union_by_name=true');
+            if (explain) params.push('explain=true');
+            if (params.length > 0) {
+                url += '?' + params.join('&');
+            }
+            
+            // Show what we're sending
+            modifiedSqlDiv.textContent = `URL: ${url}\nSQL: ${query}\n(No client-side modifications - backend handles table replacement)`;
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: query
+                });
+                
+                const contentType = response.headers.get('content-type');
+                
+                if (contentType && contentType.includes('application/json')) {
+                    const result = await response.json();
+                    outputDiv.textContent = 'Data:\n' + result.data + '\n\nExplain:\n' + (result.explain || 'N/A');
+                } else {
+                    const result = await response.text();
+                    outputDiv.textContent = result;
+                }
+                
+            } catch (error) {
+                outputDiv.textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

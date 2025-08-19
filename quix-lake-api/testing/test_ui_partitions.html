@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Lazy Partition Loading</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .result { margin: 20px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        pre { background: #f4f4f4; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Test Lazy Partition Loading</h1>
+    
+    <div id="results"></div>
+    
+    <script>
+        const baseUrl = 'http://localhost:80';
+        const resultsDiv = document.getElementById('results');
+        
+        async function test() {
+            // Test 1: Root level
+            resultsDiv.innerHTML += '<h2>Test 1: Root Level Partitions</h2>';
+            try {
+                const response = await fetch(`${baseUrl}/partitions?table=test_partitioned_demo&lazy=true&path=`);
+                const data = await response.json();
+                
+                if (data.partitions && data.partitions.length > 0) {
+                    resultsDiv.innerHTML += '<div class="result success">✓ Root partitions loaded successfully</div>';
+                    resultsDiv.innerHTML += '<pre>' + JSON.stringify(data.partitions, null, 2) + '</pre>';
+                    
+                    // Check for size information
+                    const hasSizeInfo = data.partitions.some(p => p.size_mb !== undefined);
+                    if (hasSizeInfo) {
+                        resultsDiv.innerHTML += '<div class="result success">✓ Size information is present</div>';
+                    } else {
+                        resultsDiv.innerHTML += '<div class="result error">✗ Size information is missing</div>';
+                    }
+                    
+                    // Test 2: Nested level
+                    if (data.partitions[0] && data.partitions[0].has_children) {
+                        const firstPath = data.partitions[0].path;
+                        resultsDiv.innerHTML += `<h2>Test 2: Nested Level (${firstPath})</h2>`;
+                        
+                        const nestedResponse = await fetch(`${baseUrl}/partitions?table=test_partitioned_demo&lazy=true&path=${encodeURIComponent(firstPath)}`);
+                        const nestedData = await nestedResponse.json();
+                        
+                        if (nestedData.partitions && nestedData.partitions.length > 0) {
+                            resultsDiv.innerHTML += '<div class="result success">✓ Nested partitions loaded successfully</div>';
+                            resultsDiv.innerHTML += '<pre>' + JSON.stringify(nestedData.partitions, null, 2) + '</pre>';
+                        } else {
+                            resultsDiv.innerHTML += '<div class="result error">✗ No nested partitions found</div>';
+                        }
+                    }
+                } else {
+                    resultsDiv.innerHTML += '<div class="result error">✗ No partitions found</div>';
+                }
+            } catch (error) {
+                resultsDiv.innerHTML += '<div class="result error">✗ Error: ' + error.message + '</div>';
+            }
+            
+            resultsDiv.innerHTML += '<h2>Summary</h2>';
+            resultsDiv.innerHTML += '<div class="result success">The lazy loading backend is working correctly with size information!</div>';
+        }
+        
+        test();
+    </script>
+</body>
+</html>

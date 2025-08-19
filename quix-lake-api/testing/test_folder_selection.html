@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Folder Selection</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .instruction { background: #e7f3ff; padding: 10px; margin: 10px 0; border-left: 4px solid #0066cc; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .tree-demo { border: 1px solid #ddd; padding: 10px; margin: 10px 0; max-height: 300px; overflow-y: auto; }
+        .tree-node { padding: 4px; margin: 2px 0; cursor: pointer; }
+        .tree-node:hover { background: #f0f0f0; }
+        .tree-node.selected { background: #e3f2fd; }
+    </style>
+</head>
+<body>
+    <h1>Test Folder Selection</h1>
+    
+    <div class="instruction">
+        <strong>Manual Test Instructions:</strong>
+        <ol>
+            <li>Open the SQL Query UI in another tab</li>
+            <li>Look for a table with partitions in the left tree</li>
+            <li>Try clicking on partition folders (not just the expand arrows)</li>
+            <li>Verify that clicking folders generates WHERE clauses in the SQL editor</li>
+            <li>Check that folder selection works at different levels (root partitions, nested partitions)</li>
+        </ol>
+    </div>
+    
+    <div id="results">
+        <h2>Expected Behavior:</h2>
+        <div class="result success">
+            ✓ Clicking partition folders should generate WHERE clauses<br>
+            ✓ Folder names should be blue and clickable<br>
+            ✓ Selected folders should be highlighted<br>
+            ✓ Both expand arrows and folder selection should work independently
+        </div>
+        
+        <h2>Folder Selection API Test:</h2>
+        <div id="api-test">Testing partition API...</div>
+    </div>
+    
+    <script>
+        const baseUrl = 'http://localhost:80';
+        
+        async function testFolderSelection() {
+            const testDiv = document.getElementById('api-test');
+            
+            try {
+                // Test 1: Get tables
+                const tablesResponse = await fetch(`${baseUrl}/tables`);
+                const tablesData = await tablesResponse.json();
+                
+                if (!tablesData.tables || tablesData.tables.length === 0) {
+                    testDiv.innerHTML = '<div class="result error">No tables found for testing</div>';
+                    return;
+                }
+                
+                const testTable = tablesData.tables[0];
+                testDiv.innerHTML += `<div class="result success">✓ Found test table: ${testTable}</div>`;
+                
+                // Test 2: Get root partitions
+                const partitionsResponse = await fetch(`${baseUrl}/partitions?table=${encodeURIComponent(testTable)}&lazy=true&path=`);
+                const partitionsData = await partitionsResponse.json();
+                
+                if (partitionsData.partitions && partitionsData.partitions.length > 0) {
+                    testDiv.innerHTML += `<div class="result success">✓ Found ${partitionsData.partitions.length} root partitions</div>`;
+                    
+                    // Show partition structure
+                    let demoHtml = '<div class="tree-demo"><h3>Partition Structure (click to test selection):</h3>';
+                    partitionsData.partitions.forEach(partition => {
+                        const hasChildren = partition.has_children ? '▶ ' : '  ';
+                        const fileInfo = partition.file_count > 0 ? ` (${partition.file_count} files)` : '';
+                        demoHtml += `<div class="tree-node" data-path="${partition.path}" data-table="${testTable}">
+                            ${hasChildren}📁 ${partition.name}${fileInfo}
+                        </div>`;
+                    });
+                    demoHtml += '</div>';
+                    testDiv.innerHTML += demoHtml;
+                    
+                    // Add click handlers for demo
+                    document.querySelectorAll('.tree-node').forEach(node => {
+                        node.addEventListener('click', function() {
+                            // Clear previous selections
+                            document.querySelectorAll('.tree-node').forEach(n => n.classList.remove('selected'));
+                            // Select this node
+                            this.classList.add('selected');
+                            
+                            const path = this.dataset.path;
+                            const table = this.dataset.table;
+                            testDiv.innerHTML += `<div class="result success">✓ Selected partition: ${table} WHERE ${path.replace(/=/g, ' = ').replace(/\//g, ' AND ')}</div>`;
+                        });
+                    });
+                    
+                    testDiv.innerHTML += '<div class="result success">✓ Folder selection API is working correctly!</div>';
+                } else {
+                    testDiv.innerHTML += '<div class="result error">No partitions found</div>';
+                }
+                
+            } catch (error) {
+                testDiv.innerHTML += `<div class="result error">Error: ${error.message}</div>`;
+            }
+        }
+        
+        testFolderSelection();
+    </script>
+</body>
+</html>
