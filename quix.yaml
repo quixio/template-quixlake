@@ -28,7 +28,7 @@ deployments:
       - name: S3_PREFIX
         inputType: FreeText
         description: S3 prefix/folder for data objects
-        value: iceberg
+        value: quixlake
       - name: AWS_REGION
         inputType: FreeText
         description: AWS region for S3 bucket
@@ -93,7 +93,7 @@ deployments:
       - name: S3_PREFIX
         inputType: FreeText
         description: S3 prefix/folder for data objects
-        value: data
+        value: quixlake
       - name: CATALOG_PREFIX
         inputType: FreeText
         description: S3 prefix/folder for catalog metadata
@@ -272,7 +272,7 @@ deployments:
       - name: S3_PREFIX
         inputType: FreeText
         description: S3 prefix/path for data files
-        value: metrics
+        value: quixlake
       - name: TABLE_NAME
         inputType: FreeText
         description: Table name for data organization and registration
