@@ -5,10 +5,15 @@ variables:
     inputType: InputTopic
     description: Name of the Kafka input topic to consume from
     required: true
-  - name: S3_BUCKET_DIRECTORY
+  - name: S3_BUCKET
     inputType: FreeText
     description: S3 bucket name for storing Parquet files
     required: true
+  - name: S3_BUCKET_DIRECTORY
+    inputType: FreeText
+    description: S3 bucket directory for storing Parquet files
+    required: false
+    defaultValue: ''
   - name: FILE_FORMAT
     inputType: FreeText
     description: file format to dump as

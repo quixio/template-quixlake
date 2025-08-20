@@ -276,7 +276,7 @@ deployments:
       - name: TABLE_NAME
         inputType: FreeText
         description: Table name for data organization and registration
-        value: cpu_metrics
+        value: cpu-metrics
       - name: HIVE_COLUMNS
         inputType: FreeText
         description: Comma-separated list of columns for Hive partitioning. Include year/month/day/hour to extract from TIMESTAMP_COLUMN (e.g., location,year,month,day,sensor_type)
@@ -360,11 +360,16 @@ deployments:
         description: Name of the Kafka input topic to consume from
         required: true
         value: tsbs_data_transformed
+      - name: S3_BUCKET
+        inputType: FreeText
+        description: S3 bucket name
+        required: false
+        value: 'quix-bucket'
       - name: S3_BUCKET_DIRECTORY
         inputType: FreeText
-        description: S3 bucket name for storing Parquet files
-        required: true
-        value: metrics-basic
+        description: S3 bucket path for storing files
+        required: false
+        value: '/metrics-basic'
       - name: FILE_FORMAT
         inputType: FreeText
         description: file format to dump as
