@@ -325,6 +325,10 @@ deployments:
         inputType: FreeText
         description: AWS region for S3 bucket
         value: local
+      - name: AWS_ENDPOINT_URL
+        inputType: FreeText
+        description: S3 endpoint url (for non-AWS endpoints)
+        value: http://minio:9000
   - name: TSBS Transformer
     application: tsbs-transformer
     version: latest
