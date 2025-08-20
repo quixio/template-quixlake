@@ -55,6 +55,7 @@ class S3DirectSink(BatchingSink):
         self._aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
         self._aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
         self._aws_endpoint_url = os.getenv("AWS_ENDPOINT_URL")
+        print(self._aws_endpoint_url)
         self._credentials = {
             "region_name": self._aws_region,
             "aws_access_key_id": self._aws_access_key_id,
@@ -89,7 +90,8 @@ class S3DirectSink(BatchingSink):
             )
             
             # Test S3 access
-            self.s3_client.head_bucket(Bucket=self.s3_bucket)
+            result = self.s3_client.head_bucket(Bucket=self.s3_bucket)
+            print(result)
             self.logger.info("Successfully connected to S3 bucket: %s", self.s3_bucket)
             
             # Test Catalog connection if configured
