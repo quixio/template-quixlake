@@ -285,6 +285,10 @@ deployments:
         inputType: FreeText
         description: Column containing timestamp values to extract year/month/day/hour from
         value: timestamp
+      - name: TIMESTAMP_FORMAT
+        inputType: FreeText
+        description: No longer used - specify time columns directly in HIVE_COLUMNS
+        value: day
       - name: CATALOG_URL
         inputType: FreeText
         description: REST Catalog URL for optional table registration (leave empty to skip)
@@ -312,7 +316,7 @@ deployments:
       - name: AUTO_OFFSET_RESET
         inputType: FreeText
         description: Where to start consuming if no offset exists
-        value: latest
+        value: earliest
       - name: AWS_ACCESS_KEY_ID
         inputType: Secret
         description: AWS Access Key ID for S3 access
@@ -325,10 +329,6 @@ deployments:
         inputType: FreeText
         description: AWS region for S3 bucket
         value: local
-      - name: AWS_ENDPOINT_URL
-        inputType: FreeText
-        description: S3 endpoint url (for non-AWS endpoints)
-        value: http://minio:9000
   - name: TSBS Transformer
     application: tsbs-transformer
     version: latest
