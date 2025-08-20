@@ -368,7 +368,7 @@ deployments:
       - name: S3_BUCKET_DIRECTORY
         inputType: FreeText
         description: S3 bucket directory for storing Parquet files
-        value: metrics-basic
+        value: metrics_basic
       - name: FILE_FORMAT
         inputType: FreeText
         description: file format to dump as
