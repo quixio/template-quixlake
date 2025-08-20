@@ -389,7 +389,7 @@ deployments:
       - name: AWS_ENDPOINT_URL
         inputType: FreeText
         description: S3 endpoint url (for non-AWS endpoints)
-        value: http://mino:9000
+        value: http://minio:9000
 
 # This section describes the Topics of the data pipeline
 topics:
