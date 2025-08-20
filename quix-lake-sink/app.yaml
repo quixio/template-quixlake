@@ -30,11 +30,6 @@ variables:
     description: Column containing timestamp values to extract year/month/day/hour from
     defaultValue: ts_ms
     required: false
-  - name: TIMESTAMP_FORMAT
-    inputType: FreeText
-    description: No longer used - specify time columns directly in HIVE_COLUMNS
-    defaultValue: day
-    required: false
   - name: CATALOG_URL
     inputType: FreeText
     description: REST Catalog URL for optional table registration (leave empty to skip)

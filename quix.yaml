@@ -285,10 +285,6 @@ deployments:
         inputType: FreeText
         description: Column containing timestamp values to extract year/month/day/hour from
         value: timestamp
-      - name: TIMESTAMP_FORMAT
-        inputType: FreeText
-        description: No longer used - specify time columns directly in HIVE_COLUMNS
-        value: day
       - name: CATALOG_URL
         inputType: FreeText
         description: REST Catalog URL for optional table registration (leave empty to skip)

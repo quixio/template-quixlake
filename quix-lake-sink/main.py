@@ -14,7 +14,7 @@ INPUT_TOPIC = os.environ["input"]
 
 # S3 Configuration
 S3_BUCKET = os.environ["S3_BUCKET"]  # Required
-S3_PREFIX = "cpu_usage"
+S3_PREFIX = os.environ["S3_PREFIX"]
 
 # Table Configuration
 TABLE_NAME = INPUT_TOPIC
