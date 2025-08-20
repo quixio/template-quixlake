@@ -18,16 +18,18 @@ class S3DirectSink(BatchingSink):
     then optionally registers the table using the discover endpoint.
     """
     
-    def __init__(self, 
-                 s3_bucket: str,
-                 s3_prefix: str,
-                 table_name: str,
-                 hive_columns: List[str] = None,
-                 timestamp_column: str = "ts_ms",
-                 timestamp_format: str = "day",
-                 catalog_url: str = None,
-                 auto_discover: bool = True,
-                 namespace: str = "default"):
+    def __init__(
+        self,
+        s3_bucket: str,
+        s3_prefix: str,
+        table_name: str,
+        hive_columns: List[str] = None,
+        timestamp_column: str = "ts_ms",
+        timestamp_format: str = "day",
+        catalog_url: str = None,
+        auto_discover: bool = True,
+        namespace: str = "default"
+    ):
         """
         Initialize S3 Direct Sink
         
@@ -43,6 +45,16 @@ class S3DirectSink(BatchingSink):
             auto_discover: Whether to auto-register table on first write
             namespace: Catalog namespace (default: "default")
         """
+        self._aws_region = os.getenv('AWS_REGION', 'us-east-1')
+        self._aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+        self._aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+        self._aws_endpoint_url = os.getenv("AWS_ENDPOINT_URL")
+        self._credentials = {
+            "region_name": self._aws_region,
+            "aws_access_key_id": self._aws_access_key_id,
+            "aws_secret_access_key": self._aws_secret_access_key,
+            "endpoint_url": self._aws_endpoint_url,
+        }
         self.s3_bucket = s3_bucket
         self.s3_prefix = s3_prefix
         self.table_name = table_name
@@ -67,7 +79,7 @@ class S3DirectSink(BatchingSink):
             # Initialize S3 client
             self.s3_client = boto3.client(
                 's3',
-                region_name=os.getenv('AWS_REGION', 'us-east-1')
+                **self._credentials
             )
             
             # Test S3 access

@@ -24,7 +24,7 @@ deployments:
       - name: S3_BUCKET
         inputType: FreeText
         description: S3 bucket name for QuixLake data storage (REQUIRED)
-        value: quix-test-bucket
+        value: quix-bucket
       - name: S3_PREFIX
         inputType: FreeText
         description: S3 prefix/folder for data objects
@@ -32,7 +32,7 @@ deployments:
       - name: AWS_REGION
         inputType: FreeText
         description: AWS region for S3 bucket
-        value: eu-west-2
+        value: local
       - name: CATALOG_URL
         inputType: FreeText
         description: REST Catalog service URL
@@ -40,11 +40,15 @@ deployments:
       - name: AWS_ACCESS_KEY_ID
         inputType: Secret
         description: AWS Access Key ID (leave empty to use IAM roles)
-        secretKey: AWS_ACCESS_KEY_ID
+        secretKey: aws_access_key_id
       - name: AWS_SECRET_ACCESS_KEY
         inputType: Secret
         description: AWS Secret Access Key (leave empty to use IAM roles)
-        secretKey: AWS_SECRET_ACCESS_KEY
+        secretKey: aws_secret_access_key
+      - name: AWS_ENDPOINT_URL
+        inputType: FreeText
+        description: S3 endpoint url (for non-AWS endpoints)
+        value: http://minio:80
   - name: Query UI
     application: sql-query-ui
     version: latest
@@ -85,7 +89,7 @@ deployments:
       - name: S3_BUCKET
         inputType: FreeText
         description: S3 bucket name for QuixLake data and catalog storage
-        value: quix-test-bucket
+        value: quix-bucket
       - name: S3_PREFIX
         inputType: FreeText
         description: S3 prefix/folder for data objects
@@ -97,7 +101,7 @@ deployments:
       - name: AWS_REGION
         inputType: FreeText
         description: AWS region for S3 bucket
-        value: eu-west-2
+        value: local
       - name: PORT
         inputType: FreeText
         description: Port for the REST catalog service
@@ -105,11 +109,15 @@ deployments:
       - name: AWS_ACCESS_KEY_ID
         inputType: Secret
         description: AWS Access Key ID (leave empty to use IAM roles)
-        secretKey: AWS_ACCESS_KEY_ID
+        secretKey: aws_access_key_id
       - name: AWS_SECRET_ACCESS_KEY
         inputType: Secret
         description: AWS Secret Access Key (leave empty to use IAM roles)
-        secretKey: AWS_SECRET_ACCESS_KEY
+        secretKey: aws_secret_access_key
+      - name: AWS_ENDPOINT_URL
+        inputType: FreeText
+        description: S3 endpoint url (for non-AWS endpoints)
+        value: http://minio:80
       - name: POSTGRES_HOST
         inputType: FreeText
         description: PostgreSQL host address

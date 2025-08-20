@@ -20,14 +20,26 @@ class DuckDbService:
         self.con = None
         self.s3_bucket = os.getenv('S3_BUCKET', 'quixlake-data')
         self.s3_prefix = os.getenv('S3_PREFIX', 'data')
-        self.aws_region = os.getenv('AWS_REGION', 'us-east-1')
-        
+        self._aws_region = os.getenv('AWS_REGION', 'us-east-1')
+        self._aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+        self._aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+        self._aws_endpoint_url = os.getenv("AWS_ENDPOINT_URL")
+        self._credentials = {
+            "region_name": self._aws_region,
+            "aws_access_key_id": self._aws_access_key_id,
+            "aws_secret_access_key": self._aws_secret_access_key,
+            "endpoint_url": self._aws_endpoint_url,
+        }
+
         # Initialize catalog client
         self.catalog_client = CatalogClient()
         
         # Always initialize S3 client for file operations
         try:
-            self.s3_client = boto3.client('s3', region_name=self.aws_region)
+            self.s3_client = boto3.client(
+                's3',
+                **self._credentials
+            )
             # Test S3 connection
             self.s3_client.head_bucket(Bucket=self.s3_bucket)
             print(f"✅ S3 connection established: s3://{self.s3_bucket}/{self.s3_prefix}")
@@ -50,11 +62,12 @@ class DuckDbService:
         self.con.execute("LOAD httpfs")
         
         # Configure S3 settings for data access
-        if os.getenv('AWS_ACCESS_KEY_ID'):
-            self.con.execute(f"SET s3_access_key_id='{os.getenv('AWS_ACCESS_KEY_ID')}';")
-        if os.getenv('AWS_SECRET_ACCESS_KEY'):
-            self.con.execute(f"SET s3_secret_access_key='{os.getenv('AWS_SECRET_ACCESS_KEY')}';")
-        self.con.execute(f"SET s3_region='{self.aws_region}';")
+        if self._aws_endpoint_url:
+            self.con.execute(f"SET s3_endpoint='{self._aws_endpoint_url}';")
+        if self._aws_access_key_id:
+            self.con.execute(f"SET s3_access_key_id='{self._aws_access_key_id}';")
+            self.con.execute(f"SET s3_secret_access_key='{self._aws_secret_access_key}';")
+        self.con.execute(f"SET s3_region='{self._aws_region}';")
         
         # Performance settings
         self.con.execute("SET memory_limit = '4GB';")

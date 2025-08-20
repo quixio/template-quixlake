@@ -14,8 +14,6 @@ import time
 import uuid
 load_dotenv(".env")
 
-print(os.environ["AWS_ACCESS_KEY_ID"])
-
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
