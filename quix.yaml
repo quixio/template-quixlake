@@ -65,7 +65,7 @@ deployments:
         inputType: FreeText
         description: URL of the DuckDB Query API service to connect to
         required: true
-        value: iceberg-catalog:5001
+        value: http://iceberg-catalog:80
   - name: iceberg-rest-catalog
     application: iceberg-rest-catalog
     version: latest
@@ -250,6 +250,86 @@ deployments:
         description: The root password to initialize MongoDB with
         required: true
         secretKey: minio_password
+  - name: QuixLake sink
+    application: quix-lake-sink
+    version: latest
+    deploymentType: Service
+    resources:
+      cpu: 200
+      memory: 500
+      replicas: 1
+    variables:
+      - name: input
+        inputType: InputTopic
+        description: Name of the Kafka input topic to consume from
+        required: true
+        value: opc_ua_table_with_weather
+      - name: S3_BUCKET
+        inputType: FreeText
+        description: S3 bucket name for storing Parquet files
+        required: true
+        value: quix-test-bucket
+      - name: S3_PREFIX
+        inputType: FreeText
+        description: S3 prefix/path for data files
+        value: iceberg
+      - name: TABLE_NAME
+        inputType: FreeText
+        description: Table name for data organization and registration
+        value: iceberg
+      - name: HIVE_COLUMNS
+        inputType: FreeText
+        description: Comma-separated list of columns for Hive partitioning. Include year/month/day/hour to extract from TIMESTAMP_COLUMN (e.g., location,year,month,day,sensor_type)
+        value: experiment_name,machine
+      - name: TIMESTAMP_COLUMN
+        inputType: FreeText
+        description: Column containing timestamp values to extract year/month/day/hour from
+        value: ts_ms
+      - name: TIMESTAMP_FORMAT
+        inputType: FreeText
+        description: No longer used - specify time columns directly in HIVE_COLUMNS
+        value: hour
+      - name: CATALOG_URL
+        inputType: FreeText
+        description: REST Catalog URL for optional table registration (leave empty to skip)
+        value: http://iceberg-catalog:80
+      - name: AUTO_DISCOVER
+        inputType: FreeText
+        description: Automatically register table in REST Catalog on first write
+        value: true
+      - name: CATALOG_NAMESPACE
+        inputType: FreeText
+        description: Catalog namespace for table registration
+        value: default
+      - name: BATCH_SIZE
+        inputType: FreeText
+        description: Number of messages to batch before writing to S3
+        value: 1000
+      - name: COMMIT_INTERVAL
+        inputType: FreeText
+        description: Kafka commit interval in seconds
+        value: 30
+      - name: CONSUMER_GROUP
+        inputType: FreeText
+        description: Kafka consumer group name
+        value: s3_direct_sink_v1.2
+      - name: AUTO_OFFSET_RESET
+        inputType: FreeText
+        description: Where to start consuming if no offset exists
+        value: latest
+      - name: AWS_ACCESS_KEY_ID
+        inputType: Secret
+        description: AWS Access Key ID for S3 access
+        secretKey: aws_access_key_id
+      - name: AWS_SECRET_ACCESS_KEY
+        inputType: Secret
+        description: AWS Secret Access Key for S3 access
+        secretKey: aws_secret_access_key
+      - name: AWS_REGION
+        inputType: FreeText
+        description: AWS region for S3 bucket
+        value: eu-west-2
+
 
 # This section describes the Topics of the data pipeline
 topics:

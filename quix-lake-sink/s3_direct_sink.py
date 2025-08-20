@@ -12,6 +12,14 @@ from datetime import datetime
 import requests
 
 
+TIMESTAMP_COL_MAPPER = {
+    "year": lambda col: col.dt.year.astype(str),
+    "month": lambda col: col.dt.month.astype(str).str.zfill(2),
+    "day": lambda col: col.dt.day.astype(str).str.zfill(2),
+    "hour": lambda col: col.dt.hour.astype(str).str.zfill(2)
+}
+
+
 class S3DirectSink(BatchingSink):
     """
     Writes Kafka batches directly to S3 as Hive-partitioned Parquet files,
@@ -25,7 +33,6 @@ class S3DirectSink(BatchingSink):
         table_name: str,
         hive_columns: List[str] = None,
         timestamp_column: str = "ts_ms",
-        timestamp_format: str = "day",
         catalog_url: str = None,
         auto_discover: bool = True,
         namespace: str = "default"
@@ -40,7 +47,6 @@ class S3DirectSink(BatchingSink):
             hive_columns: List of columns to use for Hive partitioning. Include 'year', 'month', 
                          'day', 'hour' to extract these from timestamp_column
             timestamp_column: Column containing timestamp to extract time partitions from
-            timestamp_format: (Deprecated) No longer used - specify time columns in hive_columns
             catalog_url: Optional REST Catalog URL for table registration
             auto_discover: Whether to auto-register table on first write
             namespace: Catalog namespace (default: "default")
@@ -59,8 +65,7 @@ class S3DirectSink(BatchingSink):
         self.s3_prefix = s3_prefix
         self.table_name = table_name
         self.hive_columns = hive_columns or []
-        self.timestamp_column = timestamp_column  # Deprecated
-        self.timestamp_format = timestamp_format  # Deprecated
+        self.timestamp_column = timestamp_column
         self.catalog_url = catalog_url.rstrip('/') if catalog_url else None
         self.auto_discover = auto_discover
         self.namespace = namespace
@@ -70,6 +75,7 @@ class S3DirectSink(BatchingSink):
         
         # S3 client will be initialized in setup()
         self.s3_client = None
+        self._ts_hive_columns = {'year', 'month', 'day', 'hour'} & set(self.hive_columns)
         
         super().__init__()
     
@@ -143,7 +149,7 @@ class S3DirectSink(BatchingSink):
         df = pd.DataFrame(rows)
         
         # Add time-based columns if needed (but only use those specified in hive_columns)
-        if self.timestamp_column in df.columns:
+        if self._ts_hive_columns:
             df = self._add_timestamp_columns(df)
         
         # Use only the explicitly specified partition columns
@@ -176,8 +182,7 @@ class S3DirectSink(BatchingSink):
             # Register file in manifest if catalog is configured
             if self.catalog_url and self.table_registered:
                 self._register_file_in_manifest(s3_key, len(df), [], [])
-    
-    
+
     def _write_parquet_to_s3(self, df: pd.DataFrame, s3_key: str):
         """Write DataFrame to S3 as Parquet"""
         # Convert to Arrow table
@@ -254,9 +259,7 @@ class S3DirectSink(BatchingSink):
     
     def _add_timestamp_columns(self, df: pd.DataFrame) -> pd.DataFrame:
         """Add timestamp-based columns that can be used for partitioning"""
-        if self.timestamp_column not in df.columns:
-            return df
-            
+
         # Convert to datetime if needed
         if not pd.api.types.is_datetime64_any_dtype(df[self.timestamp_column]):
             # Assume milliseconds if numeric
@@ -272,16 +275,10 @@ class S3DirectSink(BatchingSink):
         # Add time-based columns based on what's in hive_columns
         timestamp_col = df[self.timestamp_column]
         
-        # Only add columns that are specified in hive_columns
-        if 'year' in self.hive_columns:
-            df['year'] = timestamp_col.dt.year.astype(str)
-        if 'month' in self.hive_columns:
-            df['month'] = timestamp_col.dt.month.astype(str).str.zfill(2)
-        if 'day' in self.hive_columns:
-            df['day'] = timestamp_col.dt.day.astype(str).str.zfill(2)
-        if 'hour' in self.hive_columns:
-            df['hour'] = timestamp_col.dt.hour.astype(str).str.zfill(2)
-            
+        # Only add columns that are specified in ts_hive_columns
+        for col in self._ts_hive_columns:
+            df[col] = TIMESTAMP_COL_MAPPER[col](timestamp_col)
+
         return df
     
     def _validate_partition_strategy(self, table_metadata: Dict[str, Any]):

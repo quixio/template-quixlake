@@ -1,12 +1,11 @@
-# import the Quix Streams modules for interacting with Kafka.
-# For general info, see https://quix.io/docs/quix-streams/introduction.html
 from quixstreams import Application
 
 import os
 
-# for local dev, load env vars from a .env file
-# from dotenv import load_dotenv
-# load_dotenv()
+
+def unpack_metrics(row: dict):
+    row.update(row.pop('fields'))
+    return row
 
 
 def main():
@@ -25,22 +24,26 @@ def main():
 
     # Setup necessary objects
     app = Application(
-        consumer_group="my_transformation",
+        consumer_group="quixlake_transformer",
         auto_create_topics=True,
         auto_offset_reset="earliest"
     )
     input_topic = app.topic(name=os.environ["input"])
-    output_topic = app.topic(name=os.environ["output"])
+    output_topic = app.topic(name=os.environ["output"], key_serializer='str')
     sdf = app.dataframe(topic=input_topic)
 
-    # Do StreamingDataFrame operations/transformations here
-    sdf = sdf.apply(lambda row: row).filter(lambda row: True)
-    sdf = sdf.print(metadata=True)
+    for tag in ['region', 'datacenter', 'hostname']:
+        sdf[tag] = sdf['tags'][tag]
+    sdf = sdf.set_timestamp(lambda row, *_: row['timestamp'] // 1000000)
+    sdf = sdf.drop(['tags', 'measurement', 'timestamp']).apply(unpack_metrics)
+    sdf.print(metadata=True)
+    sdf.to_topic(
+        output_topic,
+        key=lambda row: '__'.join(
+            [row['region'], row['datacenter'], row['hostname']]
+        )
+    )
 
-    # Finish off by writing to the final result to the output topic
-    sdf.to_topic(output_topic)
-
-    # With our pipeline defined, now run the Application
     app.run()
 
 

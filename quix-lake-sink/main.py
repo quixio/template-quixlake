@@ -3,10 +3,6 @@ import os
 import logging
 from s3_direct_sink import S3DirectSink
 
-# for local dev, you can load env vars from a .env file
-#from dotenv import load_dotenv
-#load_dotenv(".env")
-
 # Basic logger config
 logging.basicConfig(
     level=logging.INFO,
@@ -14,22 +10,18 @@ logging.basicConfig(
 )
 logger = logging.getLogger("S3DirectSink")
 
+INPUT_TOPIC = os.environ["input"]
 
-# ───────────────────────────────────────────────
-# configuration via env vars
-# ───────────────────────────────────────────────
 # S3 Configuration
 S3_BUCKET = os.environ["S3_BUCKET"]  # Required
-S3_PREFIX = os.getenv("S3_PREFIX", "data")  # Default to 'data'
+S3_PREFIX = "cpu_usage"
 
 # Table Configuration
-TABLE_NAME = os.getenv("TABLE_NAME", os.environ.get("input", "kafka_data"))
+TABLE_NAME = INPUT_TOPIC
 
 # Partitioning Configuration
-HIVE_COLUMNS = os.getenv("HIVE_COLUMNS", "").split(",") if os.getenv("HIVE_COLUMNS") else []
-# Deprecated parameters (kept for backward compatibility)
-TIMESTAMP_COLUMN = os.getenv("TIMESTAMP_COLUMN", "ts_ms")
-TIMESTAMP_FORMAT = os.getenv("TIMESTAMP_FORMAT", "day")  # deprecated
+HIVE_COLUMNS = cols.split(",") if (cols := os.getenv("HIVE_COLUMNS")) else []
+TIMESTAMP_COLUMN = os.getenv("TIMESTAMP_COLUMN", "timestamp")
 
 # Optional REST Catalog for table registration
 CATALOG_URL = os.getenv("CATALOG_URL")  # Optional
@@ -50,7 +42,7 @@ def main():
     
     # Setup Quix Streams Application
     app = Application(
-        consumer_group=os.getenv("CONSUMER_GROUP", "s3_direct_sink_v1.0"),
+        consumer_group=os.getenv("CONSUMER_GROUP", "quixlake_sink"),
         auto_create_topics=True,
         auto_offset_reset=os.getenv("AUTO_OFFSET_RESET", "latest"),
         commit_interval=COMMIT_INTERVAL,
@@ -64,7 +56,6 @@ def main():
         table_name=TABLE_NAME,
         hive_columns=HIVE_COLUMNS,
         timestamp_column=TIMESTAMP_COLUMN,
-        timestamp_format=TIMESTAMP_FORMAT,
         catalog_url=CATALOG_URL,
         auto_discover=AUTO_DISCOVER,
         namespace=CATALOG_NAMESPACE
