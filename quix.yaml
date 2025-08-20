@@ -364,7 +364,7 @@ deployments:
         inputType: FreeText
         description: S3 bucket name for storing Parquet files
         required: true
-        value: metrics_basic
+        value: metrics-basic
       - name: FILE_FORMAT
         inputType: FreeText
         description: file format to dump as
