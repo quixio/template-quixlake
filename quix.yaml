@@ -362,14 +362,13 @@ deployments:
         value: tsbs_data_transformed
       - name: S3_BUCKET
         inputType: FreeText
-        description: S3 bucket name
-        required: false
-        value: 'quix-bucket'
+        description: S3 bucket name for storing Parquet files
+        required: true
+        value: quix-bucket
       - name: S3_BUCKET_DIRECTORY
         inputType: FreeText
-        description: S3 bucket path for storing files
-        required: false
-        value: '/metrics-basic'
+        description: S3 bucket directory for storing Parquet files
+        value: metrics-basic
       - name: FILE_FORMAT
         inputType: FreeText
         description: file format to dump as
