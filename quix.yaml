@@ -312,7 +312,7 @@ deployments:
       - name: CONSUMER_GROUP
         inputType: FreeText
         description: Kafka consumer group name
-        value: s3_direct_sink_v1.2
+        value: tsbs_s3_sink
       - name: AUTO_OFFSET_RESET
         inputType: FreeText
         description: Where to start consuming if no offset exists

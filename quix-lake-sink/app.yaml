@@ -84,6 +84,10 @@ variables:
     description: AWS region for S3 bucket
     defaultValue: us-east-1
     required: false
+  - name: AWS_ENDPOINT_URL
+    inputType: FreeText
+    description: S3 endpoint url (for non-AWS endpoints)
+    required: false
 dockerfile: dockerfile
 runEntryPoint: main.py
 defaultFile: main.py
