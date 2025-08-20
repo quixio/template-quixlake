@@ -255,3 +255,4 @@ deployments:
 topics:
   - name: tsbs_data
   - name: tsbs_data_transformed
+  - name: tsbs_data_transformed_000
