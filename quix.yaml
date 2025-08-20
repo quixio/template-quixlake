@@ -263,32 +263,28 @@ deployments:
         inputType: InputTopic
         description: Name of the Kafka input topic to consume from
         required: true
-        value: opc_ua_table_with_weather
+        value: tsbs_data_transformed
       - name: S3_BUCKET
         inputType: FreeText
         description: S3 bucket name for storing Parquet files
         required: true
-        value: quix-test-bucket
+        value: quix-bucket
       - name: S3_PREFIX
         inputType: FreeText
         description: S3 prefix/path for data files
-        value: iceberg
+        value: metrics
       - name: TABLE_NAME
         inputType: FreeText
         description: Table name for data organization and registration
-        value: iceberg
+        value: cpu_metrics
       - name: HIVE_COLUMNS
         inputType: FreeText
         description: Comma-separated list of columns for Hive partitioning. Include year/month/day/hour to extract from TIMESTAMP_COLUMN (e.g., location,year,month,day,sensor_type)
-        value: experiment_name,machine
+        value: region,datacenter,hostname,year,month,day,hour
       - name: TIMESTAMP_COLUMN
         inputType: FreeText
         description: Column containing timestamp values to extract year/month/day/hour from
-        value: ts_ms
-      - name: TIMESTAMP_FORMAT
-        inputType: FreeText
-        description: No longer used - specify time columns directly in HIVE_COLUMNS
-        value: hour
+        value: timestamp
       - name: CATALOG_URL
         inputType: FreeText
         description: REST Catalog URL for optional table registration (leave empty to skip)
@@ -328,7 +324,11 @@ deployments:
       - name: AWS_REGION
         inputType: FreeText
         description: AWS region for S3 bucket
-        value: eu-west-2
+        value: local
+      - name: AWS_ENDPOINT_URL
+        inputType: FreeText
+        description: S3 endpoint url (for non-AWS endpoints)
+        value: http://minio:9000
 
 
 # This section describes the Topics of the data pipeline
