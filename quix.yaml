@@ -254,3 +254,4 @@ deployments:
 # This section describes the Topics of the data pipeline
 topics:
   - name: tsbs_data
+  - name: tsbs_data_transformed
