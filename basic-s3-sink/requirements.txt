@@ -1,2 +1,3 @@
 quixstreams[s3] @ git+https://github.com/quixio/quix-streams.git@main
+mypy_boto3_s3
 python-dotenv
