@@ -23,7 +23,7 @@ class DuckDbService:
         self._aws_region = os.getenv('AWS_REGION', 'us-east-1')
         self._aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
         self._aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
-        self._aws_endpoint_url = os.getenv("AWS_ENDPOINT_URL")
+        self._aws_endpoint_url = os.getenv("AWS_ENDPOINT_URL", None)
         self._credentials = {
             "region_name": self._aws_region,
             "aws_access_key_id": self._aws_access_key_id,
