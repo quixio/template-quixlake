@@ -48,7 +48,7 @@ deployments:
       - name: AWS_ENDPOINT_URL
         inputType: FreeText
         description: S3 endpoint url (for non-AWS endpoints)
-        value: http://minio:80
+        value: http://minio:9000
   - name: Query UI
     application: sql-query-ui
     version: latest
@@ -117,7 +117,7 @@ deployments:
       - name: AWS_ENDPOINT_URL
         inputType: FreeText
         description: S3 endpoint url (for non-AWS endpoints)
-        value: http://minio:80
+        value: http://minio:9000
       - name: POSTGRES_HOST
         inputType: FreeText
         description: PostgreSQL host address
