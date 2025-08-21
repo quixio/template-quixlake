@@ -207,12 +207,12 @@ deployments:
         inputType: FreeText
         description: A start time for the data's timestamps, formatted as Y-M-DTH:M:SZ
         required: true
-        value: 2025-01-06T00:00:00Z
+        value: 2025-01-07T00:00:00Z
       - name: TSBS_TIMESTAMP_END
         inputType: FreeText
         description: The end time for the data's timestamps, formatted as Y-M-DTH:M:SZ
         required: true
-        value: 2025-01-07T00:00:00Z
+        value: 2025-01-08T00:00:00Z
       - name: TSBS_LOG_INTERVAL
         inputType: FreeText
         description: how much time should be between each reading per device, formatted as Nt
