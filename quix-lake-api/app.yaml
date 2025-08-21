@@ -6,36 +6,38 @@ variables:
     inputType: FreeText
     multiline: false
     defaultValue: quixlake-data
-    description: "S3 bucket name for QuixLake data storage (REQUIRED)"
+    description: S3 bucket name for QuixLake data storage (REQUIRED)
   - name: S3_PREFIX
     inputType: FreeText
     multiline: false
     defaultValue: data
-    description: "S3 prefix/folder for data objects"
+    description: S3 prefix/folder for data objects
   - name: AWS_REGION
     inputType: FreeText
     multiline: false
-    defaultValue: us-east-1
-    description: "AWS region for S3 bucket"
+    description: AWS region for S3 bucket
+    defaultValue: eu-west-2
+  - name: AWS_ENDPOINT_URL
+    inputType: FreeText
+    description: S3 endpoint url (for non-AWS endpoints)
+    required: false
   
   # Catalog Configuration
   - name: CATALOG_URL
     inputType: FreeText
     multiline: false
-    defaultValue: "http://iceberg-rest-catalog:5001"
-    description: "REST Catalog service URL"
+    defaultValue: http://iceberg-rest-catalog:5001
+    description: REST Catalog service URL
   
   # AWS Authentication (Optional - use IAM roles when possible)
   - name: AWS_ACCESS_KEY_ID
     inputType: Secret
     multiline: false
-    defaultValue: ""
-    description: "AWS Access Key ID (leave empty to use IAM roles)"
+    description: AWS Access Key ID (leave empty to use IAM roles)
   - name: AWS_SECRET_ACCESS_KEY
     inputType: Secret
     multiline: false
-    defaultValue: ""
-    description: "AWS Secret Access Key (leave empty to use IAM roles)"
+    description: AWS Secret Access Key (leave empty to use IAM roles)
 
 dockerfile: dockerfile
 runEntryPoint: main.py

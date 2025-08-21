@@ -1,6 +1,16 @@
 name: iceberg-rest-catalog
 language: python
 variables:
+  - name: CATALOG_PREFIX
+    inputType: FreeText
+    multiline: false
+    description: S3 prefix/folder for catalog metadata
+    defaultValue: catalog
+  - name: PORT
+    inputType: FreeText
+    multiline: false
+    description: Port for the REST catalog service
+    defaultValue: 5001
   - name: S3_BUCKET
     inputType: FreeText
     multiline: false
@@ -11,36 +21,27 @@ variables:
     multiline: false
     description: S3 prefix/folder for data objects
     defaultValue: data
-  - name: CATALOG_PREFIX
-    inputType: FreeText
+  - name: AWS_ACCESS_KEY_ID
+    inputType: Secret
     multiline: false
-    description: S3 prefix/folder for catalog metadata
-    defaultValue: catalog
+    description: AWS Access Key ID (leave empty to use IAM roles)
+  - name: AWS_SECRET_ACCESS_KEY
+    inputType: Secret
+    multiline: false
+    description: AWS Secret Access Key (leave empty to use IAM roles)
   - name: AWS_REGION
     inputType: FreeText
     multiline: false
     description: AWS region for S3 bucket
     defaultValue: eu-west-2
-  - name: PORT
+  - name: AWS_ENDPOINT_URL
     inputType: FreeText
-    multiline: false
-    description: Port for the REST catalog service
-    defaultValue: 5001
-  - name: AWS_ACCESS_KEY_ID
-    inputType: Secret
-    multiline: false
-    description: AWS Access Key ID (leave empty to use IAM roles)
-    defaultValue: AWS_ACCESS_KEY_ID
-  - name: AWS_SECRET_ACCESS_KEY
-    inputType: Secret
-    multiline: false
-    description: AWS Secret Access Key (leave empty to use IAM roles)
-    defaultValue: AWS_SECRET_ACCESS_KEY
+    description: S3 endpoint url (for non-AWS endpoints)
+    required: false
   - name: POSTGRES_HOST
     inputType: FreeText
     multiline: false
     description: PostgreSQL host address
-    defaultValue: localhost
   - name: POSTGRES_PORT
     inputType: FreeText
     multiline: false
@@ -60,7 +61,6 @@ variables:
     inputType: Secret
     multiline: false
     description: PostgreSQL password
-    defaultValue: postgres
   - name: CATALOG_BACKEND
     inputType: FreeText
     multiline: false

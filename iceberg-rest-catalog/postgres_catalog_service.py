@@ -21,16 +21,25 @@ class PostgresCatalogService:
     
     def __init__(self):
         # Database configuration
-        self.db_host = os.getenv('POSTGRES_HOST', 'localhost')
+        self.db_host = os.environ['POSTGRES_HOST'],
         self.db_port = int(os.getenv('POSTGRES_PORT', '5432'))
         self.db_name = os.getenv('POSTGRES_DB', 'iceberg_catalog')
         self.db_user = os.getenv('POSTGRES_USER', 'postgres')
-        self.db_password = os.getenv('POSTGRES_PASSWORD', 'postgres')
+        self.db_password = os.environ['POSTGRES_PASSWORD']
         
         # S3 configuration for data files (catalog metadata in PostgreSQL, data files still in S3)
         self.s3_bucket = os.getenv('S3_BUCKET', 'quixlake-data')
         self.s3_prefix = os.getenv('S3_PREFIX', 'data')
-        self.aws_region = os.getenv('AWS_REGION', 'us-east-1')
+        self._aws_region = os.getenv('AWS_REGION', 'us-east-1')
+        self._aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+        self._aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+        self._aws_endpoint_url = os.getenv("AWS_ENDPOINT_URL", None)
+        self._credentials = {
+            "region_name": self._aws_region,
+            "aws_access_key_id": self._aws_access_key_id,
+            "aws_secret_access_key": self._aws_secret_access_key,
+            "endpoint_url": self._aws_endpoint_url,
+        }
         
         # Ensure database exists
         self._ensure_database_exists()
@@ -66,11 +75,12 @@ class PostgresCatalogService:
         self.con.execute("LOAD httpfs")
         
         # Configure S3 settings
-        if os.getenv('AWS_ACCESS_KEY_ID'):
-            self.con.execute(f"SET s3_access_key_id='{os.getenv('AWS_ACCESS_KEY_ID')}';")
-        if os.getenv('AWS_SECRET_ACCESS_KEY'):
-            self.con.execute(f"SET s3_secret_access_key='{os.getenv('AWS_SECRET_ACCESS_KEY')}';")
-        self.con.execute(f"SET s3_region='{self.aws_region}';")
+        if self._aws_endpoint_url:
+            self.con.execute(f"SET s3_endpoint='{self._aws_endpoint_url}';")
+        if self._aws_access_key_id:
+            self.con.execute(f"SET s3_access_key_id='{self._aws_access_key_id}';")
+            self.con.execute(f"SET s3_secret_access_key='{self._aws_secret_access_key}';")
+        self.con.execute(f"SET s3_region='{self._aws_region}';")
     
     def _ensure_database_exists(self):
         """Create the database if it doesn't exist"""
@@ -443,7 +453,7 @@ class PostgresCatalogService:
         import boto3
         
         # Initialize S3 client
-        s3_client = boto3.client('s3', region_name=self.aws_region)
+        s3_client = boto3.client('s3', **self._credentials)
         
         # Validate path exists
         if not self._path_exists(s3_path, s3_client):
@@ -933,7 +943,7 @@ class PostgresCatalogService:
         partition_spec = table_metadata.get("partition_spec", [])
         
         # Initialize S3 client
-        s3_client = boto3.client('s3', region_name=self.aws_region)
+        s3_client = boto3.client('s3', **self._credentials)
         
         # Scan S3 for all parquet files
         manifest_entries = []
@@ -1013,7 +1023,7 @@ class PostgresCatalogService:
         
         try:
             # Initialize S3 client
-            s3_client = boto3.client('s3', region_name=self.aws_region)
+            s3_client = boto3.client('s3', **self._credentials)
             
             # Find first parquet file
             path_parts = location.replace('s3://', '').split('/', 1)
@@ -1080,7 +1090,7 @@ class PostgresCatalogService:
         import boto3
         
         if not s3_client:
-            s3_client = boto3.client('s3', region_name=self.aws_region)
+            s3_client = boto3.client('s3', **self._credentials)
         
         partition_columns = []
         
@@ -1112,7 +1122,7 @@ class PostgresCatalogService:
         import boto3
         
         if not s3_client:
-            s3_client = boto3.client('s3', region_name=self.aws_region)
+            s3_client = boto3.client('s3', **self._credentials)
         
         if path.startswith('s3://'):
             path_parts = path.replace('s3://', '').split('/', 1)
