@@ -22,6 +22,7 @@ class PostgresCatalogService:
     def __init__(self):
         # Database configuration
         self.db_host = os.environ['POSTGRES_HOST'],
+        print(self.db_host)
         self.db_port = int(os.getenv('POSTGRES_PORT', '5432'))
         self.db_name = os.getenv('POSTGRES_DB', 'iceberg_catalog')
         self.db_user = os.getenv('POSTGRES_USER', 'postgres')
