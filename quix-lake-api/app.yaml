@@ -21,11 +21,6 @@ variables:
     inputType: FreeText
     description: S3 endpoint url (only for non-AWS endpoints)
     required: false
-  - name: AWS_USE_SSL
-    inputType: FreeText
-    description: use ssl (disable for local minio)
-    required: false
-    defaultValue: true
   
   # Catalog Configuration
   - name: CATALOG_URL

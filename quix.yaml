@@ -49,11 +49,6 @@ deployments:
         inputType: FreeText
         description: S3 endpoint url (for non-AWS endpoints)
         value: http://minio:9000
-      - name: AWS_USE_SSL
-        inputType: FreeText
-        description: use ssl (disable for local minio)
-        required: false
-        value: false
   - name: Query UI
     application: sql-query-ui
     version: latest

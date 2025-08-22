@@ -34,6 +34,10 @@ class PostgresCatalogService:
         self._aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
         self._aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
         self._aws_endpoint_url = os.getenv("AWS_ENDPOINT_URL", None)
+        if (self._aws_endpoint_url or '').startswith('http://'):
+            self._duckdb_aws_ssl = "false"
+        else:
+            self._duckdb_aws_ssl = "true"
         self._credentials = {
             "region_name": self._aws_region,
             "aws_access_key_id": self._aws_access_key_id,
@@ -75,8 +79,13 @@ class PostgresCatalogService:
         self.con.execute("LOAD httpfs")
         
         # Configure S3 settings
-        if self._aws_endpoint_url:
-            self.con.execute(f"SET s3_endpoint='{self._aws_endpoint_url}';")
+        if url := self._aws_endpoint_url:  # non-AWS server, like MinIO
+            # httpfs ALWAYS appends a scheme, based on s3_use_ssl (=true by default)
+            if url.startswith('http'):
+                url = url.split("//", 1)[1]
+            self.con.execute(f"SET s3_endpoint='{url}';")
+            self.con.execute("SET s3_url_style='path';")
+            self.con.execute(f"SET s3_use_ssl={self._duckdb_aws_ssl}")
         if self._aws_access_key_id:
             self.con.execute(f"SET s3_access_key_id='{self._aws_access_key_id}';")
             self.con.execute(f"SET s3_secret_access_key='{self._aws_secret_access_key}';")
