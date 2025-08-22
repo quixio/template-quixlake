@@ -63,9 +63,9 @@ class DuckDbService:
         self.con.execute("LOAD httpfs")
         
         # Configure S3 settings for data access
-        if url := self._aws_endpoint_url:
-            # if url.startswith('http'):
-            #     url = url.split("//", 1)[1]
+        if url := self._aws_endpoint_url:  # non-AWS server, like MinIO
+            if url.startswith('http'):
+                url = url.split("//", 1)[1]
             self.con.execute(f"SET s3_endpoint='{url}';")
             self.con.execute("SET s3_url_style='path';")
             self.con.execute(f"SET s3_use_ssl={self._aws_use_ssl}")
