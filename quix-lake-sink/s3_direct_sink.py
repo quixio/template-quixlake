@@ -1,5 +1,6 @@
 from quixstreams.sinks import BatchingSink, SinkBatch
 import boto3
+from botocore.exceptions import ClientError
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -116,7 +117,7 @@ class S3DirectSink(BatchingSink):
         bucket = self.s3_bucket
         try:
             self.s3_client.head_bucket(Bucket=bucket)
-        except boto3.ClientError as e:
+        except ClientError as e:
             error_code = int(e.response["Error"]["Code"])
             if error_code == 404 and self._auto_create_bucket:
                 # Bucket does not exist, create it
