@@ -35,7 +35,8 @@ class S3DirectSink(BatchingSink):
         timestamp_column: str = "ts_ms",
         catalog_url: str = None,
         auto_discover: bool = True,
-        namespace: str = "default"
+        namespace: str = "default",
+        auto_create_bucket: bool = True
     ):
         """
         Initialize S3 Direct Sink
@@ -50,6 +51,7 @@ class S3DirectSink(BatchingSink):
             catalog_url: Optional REST Catalog URL for table registration
             auto_discover: Whether to auto-register table on first write
             namespace: Catalog namespace (default: "default")
+            auto_create_bucket: if True, create bucket in S3 if missing.
         """
         self._aws_region = os.getenv('AWS_REGION', 'us-east-1')
         self._aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
@@ -77,6 +79,7 @@ class S3DirectSink(BatchingSink):
         # S3 client will be initialized in setup()
         self.s3_client = None
         self._ts_hive_columns = {'year', 'month', 'day', 'hour'} & set(self.hive_columns)
+        self._auto_create_bucket = auto_create_bucket
         
         super().__init__()
     
@@ -89,10 +92,8 @@ class S3DirectSink(BatchingSink):
                 **self._credentials
             )
             
-            # Test S3 access
-            result = self.s3_client.head_bucket(Bucket=self.s3_bucket)
-            print(result)
-            self.logger.info("Successfully connected to S3 bucket: %s", self.s3_bucket)
+            # Confirm bucket connection
+            self._ensure_bucket()
             
             # Test Catalog connection if configured
             if self.catalog_url:
@@ -110,7 +111,22 @@ class S3DirectSink(BatchingSink):
         except Exception as e:
             self.logger.error("Failed to setup S3 connection: %s", e)
             raise
-    
+
+    def _ensure_bucket(self):
+        bucket = self.s3_bucket
+        try:
+            self.s3_client.head_bucket(Bucket=bucket)
+        except boto3.ClientError as e:
+            error_code = int(e.response["Error"]["Code"])
+            if error_code == 404 and self._auto_create_bucket:
+                # Bucket does not exist, create it
+                print(f"⚠️ Bucket '{bucket}' not found. Creating it...")
+                self.s3_client.create_bucket(Bucket=self.s3_bucket)
+                print(f"✅ Bucket '{bucket}' created.")
+            else:
+                raise
+        self.logger.info("Successfully connected to S3 bucket: %s", bucket)
+
     def write(self, batch: SinkBatch):
         """Write batch directly to S3"""
         # Register table before first write if auto-discover is enabled
