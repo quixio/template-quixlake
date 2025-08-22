@@ -1,4 +1,2 @@
-quixstreams[s3] @ git+https://github.com/quixio/quix-streams.git@main
-mypy_boto3_s3
-pyarrow
+quixstreams[s3,parquet] @ git+https://github.com/quixio/quix-streams.git@sinks/fix-s3filesink-imports
 python-dotenv

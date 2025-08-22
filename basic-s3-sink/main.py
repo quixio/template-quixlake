@@ -20,7 +20,7 @@ app = Application(
     consumer_group="s3-file-destination2",
     auto_offset_reset="earliest",
     commit_interval=5,
-    loglevel="DEBUG"
+    loglevel="INFO"
 )
 
 s3_file_sink = S3FileSink(
