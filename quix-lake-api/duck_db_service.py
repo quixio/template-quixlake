@@ -24,6 +24,7 @@ class DuckDbService:
         self._aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
         self._aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
         self._aws_endpoint_url = os.getenv("AWS_ENDPOINT_URL", None)
+        self._aws_use_ssl = os.getenv("AWS_USE_SSL", "true")  # disable for local minio
         self._credentials = {
             "region_name": self._aws_region,
             "aws_access_key_id": self._aws_access_key_id,
@@ -63,10 +64,11 @@ class DuckDbService:
         
         # Configure S3 settings for data access
         if url := self._aws_endpoint_url:
-            if url.startswith('http'):
-                url = url.split("//", 1)[1]
+            # if url.startswith('http'):
+            #     url = url.split("//", 1)[1]
             self.con.execute(f"SET s3_endpoint='{url}';")
-            self.con.execute(f"SET s3_url_style='path';")
+            self.con.execute("SET s3_url_style='path';")
+            self.con.execute(f"SET s3_use_ssl={self._aws_use_ssl}")
         if self._aws_access_key_id:
             self.con.execute(f"SET s3_access_key_id='{self._aws_access_key_id}';")
             self.con.execute(f"SET s3_secret_access_key='{self._aws_secret_access_key}';")
