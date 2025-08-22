@@ -64,6 +64,7 @@ class DuckDbService:
         # Configure S3 settings for data access
         if self._aws_endpoint_url:
             self.con.execute(f"SET s3_endpoint='{self._aws_endpoint_url}';")
+            self.con.execute(f"SET s3_url_style='path';")
         if self._aws_access_key_id:
             self.con.execute(f"SET s3_access_key_id='{self._aws_access_key_id}';")
             self.con.execute(f"SET s3_secret_access_key='{self._aws_secret_access_key}';")
