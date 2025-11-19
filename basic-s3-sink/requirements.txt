@@ -1,2 +1,0 @@
-quixstreams[s3,parquet] @ git+https://github.com/quixio/quix-streams.git@sinks/fix-s3filesink-imports
-python-dotenv
