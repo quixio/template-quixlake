@@ -6,9 +6,8 @@ metadata:
 
 # This section describes the Deployments of the data pipeline
 deployments:
-  - name: QuixLake API
-    application: quix-lake-api
-    version: latest
+  - name: Quix TS Datalake API
+    image: quixcontainerregistry.azurecr.io/quix-datalake-ts-api:20251119.1-master
     deploymentType: Service
     resources:
       cpu: 200
@@ -20,15 +19,20 @@ deployments:
     state:
       enabled: true
       size: 1
+    network:
+      serviceName: quixlake
+      ports:
+        - port: 80
+          targetPort: 80
     variables:
       - name: S3_BUCKET
         inputType: FreeText
         description: S3 bucket name for QuixLake data storage (REQUIRED)
-        value: quix-bucket
+        value: quixdatalaketest
       - name: S3_PREFIX
         inputType: FreeText
         description: S3 prefix/folder for data objects
-        value: quixlake
+        value: ts_test
       - name: AWS_REGION
         inputType: FreeText
         description: AWS region for S3 bucket
@@ -40,18 +44,17 @@ deployments:
       - name: AWS_ACCESS_KEY_ID
         inputType: Secret
         description: AWS Access Key ID (leave empty to use IAM roles)
-        secretKey: aws_access_key_id
+        secretKey: minio_user
       - name: AWS_SECRET_ACCESS_KEY
         inputType: Secret
         description: AWS Secret Access Key (leave empty to use IAM roles)
-        secretKey: aws_secret_access_key
+        secretKey: minio_password
       - name: AWS_ENDPOINT_URL
         inputType: FreeText
         description: S3 endpoint url (for non-AWS endpoints)
         value: http://minio:9000
-  - name: Query UI
-    application: sql-query-ui
-    version: latest
+  - name: Quix TS Query UI
+    image: quixcontainerregistry.azurecr.io/quix-datalake-ts-ui:20251119.1-master
     deploymentType: Service
     resources:
       cpu: 200
@@ -65,10 +68,19 @@ deployments:
         inputType: FreeText
         description: URL of the DuckDB Query API service to connect to
         required: true
-        value: http://iceberg-catalog:80
-  - name: iceberg-rest-catalog
-    application: iceberg-rest-catalog
-    version: latest
+        value: http://quixlake
+      - name: DEBUG_LOG_LEVEL
+        inputType: FreeText
+        description: debug logging level
+        value: DEBUG
+    plugin:
+      embeddedView: true
+      sidebarItem:
+        show: true
+        label: Data Explorer
+        icon: search
+  - name: Quix TS Datalake Catalog
+    image: quixcontainerregistry.azurecr.io/quix-datalake-ts-catalog:20251119.1-master
     deploymentType: Service
     resources:
       cpu: 200
@@ -77,9 +89,6 @@ deployments:
     publicAccess:
       enabled: true
       urlPrefix: iceberg-catalog
-    state:
-      enabled: true
-      size: 1
     network:
       serviceName: iceberg-catalog
       ports:
@@ -89,11 +98,11 @@ deployments:
       - name: S3_BUCKET
         inputType: FreeText
         description: S3 bucket name for QuixLake data and catalog storage
-        value: quix-bucket
+        value: quixdatalaketest
       - name: S3_PREFIX
         inputType: FreeText
         description: S3 prefix/folder for data objects
-        value: quixlake
+        value: ts_test
       - name: CATALOG_PREFIX
         inputType: FreeText
         description: S3 prefix/folder for catalog metadata
@@ -101,7 +110,7 @@ deployments:
       - name: AWS_REGION
         inputType: FreeText
         description: AWS region for S3 bucket
-        value: local
+        value: eu-west-2
       - name: PORT
         inputType: FreeText
         description: Port for the REST catalog service
@@ -109,15 +118,11 @@ deployments:
       - name: AWS_ACCESS_KEY_ID
         inputType: Secret
         description: AWS Access Key ID (leave empty to use IAM roles)
-        secretKey: aws_access_key_id
+        secretKey: minio_user
       - name: AWS_SECRET_ACCESS_KEY
         inputType: Secret
         description: AWS Secret Access Key (leave empty to use IAM roles)
-        secretKey: aws_secret_access_key
-      - name: AWS_ENDPOINT_URL
-        inputType: FreeText
-        description: S3 endpoint url (for non-AWS endpoints)
-        value: http://minio:9000
+        secretKey: minio_password
       - name: POSTGRES_HOST
         inputType: FreeText
         description: PostgreSQL host address
@@ -150,9 +155,6 @@ deployments:
       cpu: 200
       memory: 2000
       replicas: 1
-    state:
-      enabled: true
-      size: 10
     network:
       serviceName: postgresql
       ports:
@@ -174,69 +176,20 @@ deployments:
         description: The default database name to initialize PostgreSQL with
         required: true
         value: quix
-  - name: TSBS Quix Data Generator
-    application: tsbs-quix-data-generator
-    version: latest
-    deploymentType: Job
-    resources:
-      cpu: 200
-      memory: 1000
-      replicas: 1
-    variables:
-      - name: output
-        inputType: OutputTopic
-        description: This is the Quix Topic that will receive the generated data
-        required: true
-        value: tsbs_data
-      - name: TSBS_USE_CASE
-        inputType: FreeText
-        description: 'The type of data; options: cpu-only, devops, iot'
-        required: true
-        value: cpu-only
-      - name: TSBS_SEED
-        inputType: FreeText
-        description: 'an integer PRNG seed for deterministic generation. '
-        required: true
-        value: 123
-      - name: TSBS_SCALE
-        inputType: FreeText
-        description: The number of devices / trucks to generate data for
-        required: true
-        value: 5
-      - name: TSBS_TIMESTAMP_START
-        inputType: FreeText
-        description: A start time for the data's timestamps, formatted as Y-M-DTH:M:SZ
-        required: true
-        value: 2025-01-08T00:00:00Z
-      - name: TSBS_TIMESTAMP_END
-        inputType: FreeText
-        description: The end time for the data's timestamps, formatted as Y-M-DTH:M:SZ
-        required: true
-        value: 2025-01-09T00:00:00Z
-      - name: TSBS_LOG_INTERVAL
-        inputType: FreeText
-        description: how much time should be between each reading per device, formatted as Nt
-        required: true
-        value: 10s
   - name: minio
     application: minio
     version: latest
     deploymentType: Service
     resources:
-      cpu: 200
+      cpu: 1000
       memory: 500
       replicas: 1
-    publicAccess:
-      enabled: true
-      urlPrefix: minio
     state:
       enabled: true
-      size: 5
+      size: 1
     network:
       serviceName: minio
       ports:
-        - port: 80
-          targetPort: 9001
         - port: 9000
           targetPort: 9000
     variables:
@@ -250,102 +203,18 @@ deployments:
         description: The root password to initialize MongoDB with
         required: true
         secretKey: minio_password
-  - name: QuixLake sink
-    application: quix-lake-sink
+  - name: Minio proxy
+    application: minio-proxy
     version: latest
     deploymentType: Service
     resources:
       cpu: 200
       memory: 500
       replicas: 1
-    variables:
-      - name: input
-        inputType: InputTopic
-        description: Name of the Kafka input topic to consume from
-        required: true
-        value: tsbs_data_transformed
-      - name: S3_BUCKET
-        inputType: FreeText
-        description: S3 bucket name for storing Parquet files
-        required: true
-        value: quix-bucket
-      - name: S3_PREFIX
-        inputType: FreeText
-        description: S3 prefix/path for data files
-        value: quixlake
-      - name: TABLE_NAME
-        inputType: FreeText
-        description: Table name for data organization and registration
-        value: cpu-metrics
-      - name: HIVE_COLUMNS
-        inputType: FreeText
-        description: Comma-separated list of columns for Hive partitioning. Include year/month/day/hour to extract from TIMESTAMP_COLUMN (e.g., location,year,month,day,sensor_type)
-        value: region,datacenter,hostname,year,month,day,hour
-      - name: TIMESTAMP_COLUMN
-        inputType: FreeText
-        description: Column containing timestamp values to extract year/month/day/hour from
-        value: timestamp
-      - name: CATALOG_URL
-        inputType: FreeText
-        description: REST Catalog URL for optional table registration (leave empty to skip)
-        value: http://iceberg-catalog:80
-      - name: AUTO_DISCOVER
-        inputType: FreeText
-        description: Automatically register table in REST Catalog on first write
-        value: true
-      - name: CATALOG_NAMESPACE
-        inputType: FreeText
-        description: Catalog namespace for table registration
-        value: default
-      - name: BATCH_SIZE
-        inputType: FreeText
-        description: Number of messages to batch before writing to S3
-        value: 1000
-      - name: COMMIT_INTERVAL
-        inputType: FreeText
-        description: Kafka commit interval in seconds
-        value: 30
-      - name: CONSUMER_GROUP
-        inputType: FreeText
-        description: Kafka consumer group name
-        value: tsbs_s3_sink
-      - name: AUTO_OFFSET_RESET
-        inputType: FreeText
-        description: Where to start consuming if no offset exists
-        value: earliest
-      - name: AWS_ACCESS_KEY_ID
-        inputType: Secret
-        description: AWS Access Key ID for S3 access
-        secretKey: aws_access_key_id
-      - name: AWS_SECRET_ACCESS_KEY
-        inputType: Secret
-        description: AWS Secret Access Key for S3 access
-        secretKey: aws_secret_access_key
-      - name: AWS_REGION
-        inputType: FreeText
-        description: AWS region for S3 bucket
-        value: local
-      - name: AWS_ENDPOINT_URL
-        inputType: FreeText
-        description: S3 endpoint url (for non-AWS endpoints)
-        value: http://minio:9000
-  - name: TSBS Transformer
-    application: tsbs-transformer
-    version: latest
-    deploymentType: Service
-    resources:
-      cpu: 200
-      memory: 500
-      replicas: 1
-    variables:
-      - name: input
-        inputType: InputTopic
-        description: Name of the input topic to listen to.
-        value: tsbs_data
-      - name: output
-        inputType: OutputTopic
-        description: Name of the output topic to write to.
-        value: tsbs_data_transformed
+    publicAccess:
+      enabled: true
+      urlPrefix: minioproxy
+
 
 # This section describes the Topics of the data pipeline
 topics:

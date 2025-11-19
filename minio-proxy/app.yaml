@@ -1,0 +1,4 @@
+name: MinIO Proxy
+language: docker
+dockerfile: dockerfile
+defaultFile: dockerfile
