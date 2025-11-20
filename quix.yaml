@@ -216,6 +216,7 @@ deployments:
       enabled: true
       urlPrefix: minioproxy
   - name: TSBS Quix Data Generator
+    group: Example pipeline
     application: tsbs-quix-data-generator
     version: latest
     deploymentType: Job
