@@ -76,8 +76,9 @@ variables:
     defaultValue: minio_user
   - name: AWS_SECRET_ACCESS_KEY
     inputType: Secret
+    multiline: false
     description: AWS Secret Access Key for S3 access
-    defaultValue: influxdb_admin_token
+    defaultValue: minio_password
   - name: AWS_REGION
     inputType: FreeText
     description: AWS region for S3 bucket
