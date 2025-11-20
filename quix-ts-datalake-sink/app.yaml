@@ -35,6 +35,7 @@ variables:
     defaultValue: ddd
   - name: CATALOG_AUTH_TOKEN
     inputType: Secret
+    multiline: false
     description: If using a catalog, the respective auth token to access it
     defaultValue: config_ui_auth_token
   - name: AUTO_DISCOVER
