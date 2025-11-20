@@ -31,8 +31,9 @@ variables:
     defaultValue: ts_ms
   - name: CATALOG_URL
     inputType: FreeText
+    multiline: false
     description: REST Catalog URL for optional table registration (leave empty to skip)
-    defaultValue: ddd
+    defaultValue: https://iceberg-catalog-quixdev-templatequixlake-dev.deployments-dev.quix.io
   - name: CATALOG_AUTH_TOKEN
     inputType: Secret
     multiline: false
