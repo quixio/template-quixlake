@@ -74,7 +74,8 @@ deployments:
         description: debug logging level
         value: DEBUG
     plugin:
-      embeddedView: true
+      embeddedView:
+        enabled: true
       sidebarItem:
         show: true
         label: Data Explorer
@@ -275,7 +276,6 @@ deployments:
         inputType: OutputTopic
         description: Name of the output topic to write to.
         value: tsbs_data_transformed
-
 
 # This section describes the Topics of the data pipeline
 topics:
