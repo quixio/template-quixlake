@@ -85,7 +85,9 @@ variables:
     defaultValue: local
   - name: AWS_ENDPOINT_URL
     inputType: FreeText
+    multiline: false
     description: S3 endpoint url (for non-AWS endpoints)
+    defaultValue: https://minioproxy-quixdev-templatequixlake-dev.deployments-dev.quix.io
   - name: LOGLEVEL
     inputType: FreeText
     description: set application logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
