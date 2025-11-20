@@ -260,6 +260,7 @@ deployments:
         required: true
         value: 10s
   - name: TSBS Transformer
+    group: Example pipeline
     application: tsbs-transformer
     version: latest
     deploymentType: Service
