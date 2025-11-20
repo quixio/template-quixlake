@@ -68,8 +68,9 @@ variables:
     defaultValue: s3_direct_sink_v1.0
   - name: AUTO_OFFSET_RESET
     inputType: FreeText
+    multiline: false
     description: Where to start consuming if no offset exists
-    defaultValue: latest
+    defaultValue: earliest
   - name: AWS_ACCESS_KEY_ID
     inputType: Secret
     description: AWS Access Key ID for S3 access
