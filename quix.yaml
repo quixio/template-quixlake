@@ -44,11 +44,11 @@ deployments:
       - name: AWS_ACCESS_KEY_ID
         inputType: Secret
         description: AWS Access Key ID (leave empty to use IAM roles)
-        secretKey: minio_user
+        secretKey: s3_user
       - name: AWS_SECRET_ACCESS_KEY
         inputType: Secret
         description: AWS Secret Access Key (leave empty to use IAM roles)
-        secretKey: minio_password
+        secretKey: s3_secret
       - name: AWS_ENDPOINT_URL
         inputType: FreeText
         description: S3 endpoint url (for non-AWS endpoints)
@@ -119,11 +119,11 @@ deployments:
       - name: AWS_ACCESS_KEY_ID
         inputType: Secret
         description: AWS Access Key ID (leave empty to use IAM roles)
-        secretKey: minio_user
+        secretKey: s3_user
       - name: AWS_SECRET_ACCESS_KEY
         inputType: Secret
         description: AWS Secret Access Key (leave empty to use IAM roles)
-        secretKey: minio_password
+        secretKey: s3_secret
       - name: POSTGRES_HOST
         inputType: FreeText
         description: PostgreSQL host address
@@ -195,15 +195,15 @@ deployments:
           targetPort: 9000
     variables:
       - name: MINIO_ROOT_USER
-        inputType: FreeText
+        inputType: Secret
         description: The root username to initialize Minio with
         required: true
-        value: admin
+        secretKey: s3_user
       - name: MINIO_ROOT_PASSWORD
         inputType: Secret
         description: The root password to initialize MongoDB with
         required: true
-        secretKey: minio_password
+        secretKey: s3_secret
   - name: Minio proxy
     application: minio-proxy
     version: latest
@@ -357,11 +357,11 @@ deployments:
       - name: AWS_ACCESS_KEY_ID
         inputType: Secret
         description: AWS Access Key ID for S3 access
-        secretKey: minio_user
+        secretKey: s3_user
       - name: AWS_SECRET_ACCESS_KEY
         inputType: Secret
         description: AWS Secret Access Key for S3 access
-        secretKey: minio_password
+        secretKey: s3_secret
       - name: AWS_REGION
         inputType: FreeText
         description: AWS region for S3 bucket
