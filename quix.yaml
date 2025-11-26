@@ -215,6 +215,11 @@ deployments:
     publicAccess:
       enabled: true
       urlPrefix: minioproxy
+    network:
+      serviceName: minio-proxy
+      ports:
+        - port: 80
+          targetPort: 80
   - name: TSBS Quix Data Generator
     group: Example pipeline
     application: tsbs-quix-data-generator
@@ -317,7 +322,7 @@ deployments:
       - name: CATALOG_URL
         inputType: FreeText
         description: REST Catalog URL for optional table registration (leave empty to skip)
-        value: https://iceberg-catalog-quixdev-templatequixlake-dev.deployments-dev.quix.io
+        value: http://iceberg-catalog
       - name: CATALOG_AUTH_TOKEN
         inputType: Secret
         description: If using a catalog, the respective auth token to access it
@@ -369,7 +374,7 @@ deployments:
       - name: AWS_ENDPOINT_URL
         inputType: FreeText
         description: S3 endpoint url (for non-AWS endpoints)
-        value: https://minioproxy-quixdev-templatequixlake-dev.deployments-dev.quix.io
+        value: http://minio-proxy
       - name: LOGLEVEL
         inputType: FreeText
         description: set application logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
