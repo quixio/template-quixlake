@@ -1,12 +1,12 @@
 {
   "TemplateId": "quixlake",
-  "Name": "QuixLake Template",
+  "Name": "QuixLake v2 Timeseries Preview (Experimental)",
   "SshUrl": "https://github.com/quixio/template-quixlake.git",
   "Branch": "main",
-  "Description": "This template sets up a QuixLake instance and includes an example sink to show how to export data to it.",
+  "Description": "This template provides early access to the Timeseries data management and queries feature of QuixLake v2. Deploy this template to test the upcoming functionality and provide feedback before it becomes fully integrated into the Quix platform. Features and APIs may change.",
   "Tags": {
     "languages": ["python"],
-    "category": ["sample", "demo"]
+    "category": ["sample", "demo", "experimental", "preview"]
   },
   "ImageFile": "images/pipeline.png",
   "ReadmeFile": "README.md",

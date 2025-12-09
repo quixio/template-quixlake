@@ -1,5 +1,7 @@
 # QuixLake Initial Setup Guide
 
+> **Note:** This setup guide is for the experimental QuixLake v2 Timeseries Preview. Configuration options may change before final platform integration.
+
 This guide walks you through the initial configuration of the QuixLake template, including setting up secrets and configuring storage.
 
 ## Step 1: Configure Secrets
