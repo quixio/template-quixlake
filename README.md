@@ -1,4 +1,11 @@
-# QuixLake Template
+# QuixLake v2 Timeseries Preview (Experimental)
+
+> **Experimental Preview**
+>
+> This template provides early access to the **Timeseries data management and queries** feature of QuixLake v2.
+> Deploy this template to test the functionality and provide feedback before it becomes fully integrated into the Quix platform.
+>
+> Note: This is an experimental release. Features and APIs may change before final integration.
 
 A complete data lake solution built on DuckDB, S3, and Apache Iceberg for high-performance streaming data analytics.
 
