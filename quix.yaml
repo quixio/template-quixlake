@@ -7,7 +7,7 @@ metadata:
 # This section describes the Deployments of the data pipeline
 deployments:
   - name: Quix TS Datalake API
-    image: quixcontainerregistry.azurecr.io/quix-datalake-ts-api:20251119.1-master
+    image: quixcontainerregistry.azurecr.io/quix-datalake-ts-api:20251218.2-master
     deploymentType: Service
     resources:
       cpu: 200
@@ -54,7 +54,7 @@ deployments:
         description: S3 endpoint url (for non-AWS endpoints)
         value: http://minio:9000
   - name: Quix TS Query UI
-    image: quixcontainerregistry.azurecr.io/quix-datalake-ts-ui:20251119.1-master
+    image: quixcontainerregistry.azurecr.io/quix-datalake-ts-ui:20251218.2-master
     deploymentType: Service
     resources:
       cpu: 200
@@ -76,12 +76,14 @@ deployments:
     plugin:
       embeddedView:
         enabled: true
+        default: true
+        hideHeader: true
       sidebarItem:
         show: true
         label: Data Explorer
         icon: search
   - name: Quix TS Datalake Catalog
-    image: quixcontainerregistry.azurecr.io/quix-datalake-ts-catalog:20251119.1-master
+    image: quixcontainerregistry.azurecr.io/quix-datalake-ts-catalog:20251218.2-master
     deploymentType: Service
     resources:
       cpu: 200
