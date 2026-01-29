@@ -1,5 +1,7 @@
 name: quix-ts-datalake-sink
 language: python
+blobStorage:
+  bind: true
 variables:
   - name: input
     inputType: InputTopic
@@ -7,14 +9,9 @@ variables:
     description: Name of the Kafka input topic to consume from
     defaultValue: tsbs_data_transformed
     required: true
-  - name: S3_BUCKET
-    inputType: FreeText
-    description: S3 bucket name for storing Parquet files
-    defaultValue: quixlake
-    required: true
   - name: S3_PREFIX
     inputType: FreeText
-    description: S3 prefix/path for data files
+    description: Path prefix for data files within the bucket
     defaultValue: data
   - name: TABLE_NAME
     inputType: FreeText
@@ -49,7 +46,7 @@ variables:
     defaultValue: default
   - name: BATCH_SIZE
     inputType: FreeText
-    description: Number of messages to batch before writing to S3
+    description: Number of messages to batch before writing to storage
     defaultValue: 1000
   - name: COMMIT_INTERVAL
     inputType: FreeText
@@ -72,31 +69,13 @@ variables:
     multiline: false
     description: Where to start consuming if no offset exists
     defaultValue: earliest
-  - name: AWS_ACCESS_KEY_ID
-    inputType: Secret
-    description: AWS Access Key ID for S3 access
-    defaultValue: minio_user
-  - name: AWS_SECRET_ACCESS_KEY
-    inputType: Secret
-    multiline: false
-    description: AWS Secret Access Key for S3 access
-    defaultValue: minio_password
-  - name: AWS_REGION
-    inputType: FreeText
-    description: AWS region for S3 bucket
-    defaultValue: local
-  - name: AWS_ENDPOINT_URL
-    inputType: FreeText
-    multiline: false
-    description: S3 endpoint url (for non-AWS endpoints)
-    defaultValue: https://minioproxy-quixdev-templatequixlake-dev.deployments-dev.quix.io
   - name: LOGLEVEL
     inputType: FreeText
     description: set application logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
     defaultValue: INFO
   - name: MAX_WRITE_WORKERS
     inputType: FreeText
-    description: How many files can be written in parallel to S3 at once (based on partitioning + batch size)
+    description: How many files can be written in parallel to storage at once (based on partitioning + batch size)
     defaultValue: 10
 dockerfile: dockerfile
 runEntryPoint: main.py
