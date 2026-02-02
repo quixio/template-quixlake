@@ -65,10 +65,16 @@ class BlobStorageClient:
         Initialize blob storage client via quixportal.
 
         Args:
-            base_path: Optional base path prefix for all operations
+            base_path: Optional base path prefix for all operations.
+                       If empty, filesystem is used without DirFileSystem wrapper.
             max_workers: Maximum number of concurrent upload workers
         """
-        self._fs = get_filesystem(base_path=base_path)
+        # Only pass base_path if non-empty to avoid quixportal wrapping with DirFileSystem(base_path=".")
+        # which causes "Access denied" errors on GCP S3-compatible storage
+        if base_path:
+            self._fs = get_filesystem(base_path=base_path)
+        else:
+            self._fs = get_filesystem()
         self.base_path = base_path
         self._max_workers = max_workers
         self._executor: Optional[concurrent.futures.ThreadPoolExecutor] = None
