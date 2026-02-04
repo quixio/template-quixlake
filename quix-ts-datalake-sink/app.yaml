@@ -9,10 +9,7 @@ variables:
     description: Name of the Kafka input topic to consume from
     defaultValue: tsbs_data_transformed
     required: true
-  - name: S3_PREFIX
-    inputType: FreeText
-    description: Path prefix for data files within the bucket
-    defaultValue: data
+  # Note: Quix__Workspace__Id is auto-injected by the platform - paths will be: {workspaceId}/data-lake/time-series/...
   - name: TABLE_NAME
     inputType: FreeText
     description: Table name for data organization and registration, else defaults to topic name
@@ -30,12 +27,14 @@ variables:
     inputType: FreeText
     multiline: false
     description: REST Catalog URL for optional table registration (leave empty to skip)
-    defaultValue: https://iceberg-catalog-quixdev-templatequixlake-dev.deployments-dev.quix.io
+    defaultValue: ""
+    required: false
   - name: CATALOG_AUTH_TOKEN
     inputType: Secret
     multiline: false
     description: If using a catalog, the respective auth token to access it
-    defaultValue: config_ui_auth_token
+    defaultValue: ""
+    required: false
   - name: AUTO_DISCOVER
     inputType: FreeText
     description: Automatically register table in REST Catalog on first write
