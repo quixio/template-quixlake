@@ -3,79 +3,75 @@ language: python
 blobStorage:
   bind: true
 variables:
-  - name: input
-    inputType: InputTopic
-    multiline: false
-    description: Name of the Kafka input topic to consume from
-    defaultValue: tsbs_data_transformed
-    required: true
-  # Note: Quix__Workspace__Id is auto-injected by the platform - paths will be: {workspaceId}/data-lake/time-series/...
-  - name: TABLE_NAME
-    inputType: FreeText
-    description: Table name for data organization and registration, else defaults to topic name
-    defaultValue: sensordata
-  - name: HIVE_COLUMNS
-    inputType: FreeText
-    multiline: false
-    description: Comma-separated list of columns for Hive partitioning. Include year/month/day/hour to extract from TIMESTAMP_COLUMN (e.g., location,year,month,day,sensor_type)
-    defaultValue: region,datacenter,hostname
-  - name: TIMESTAMP_COLUMN
-    inputType: FreeText
-    description: Column containing timestamp values to extract year/month/day/hour from
-    defaultValue: ts_ms
-  - name: CATALOG_URL
-    inputType: FreeText
-    multiline: false
-    description: REST Catalog URL for optional table registration (leave empty to skip)
-    defaultValue: ""
-    required: false
-  - name: CATALOG_AUTH_TOKEN
-    inputType: Secret
-    multiline: false
-    description: If using a catalog, the respective auth token to access it
-    defaultValue: ""
-    required: false
-  - name: AUTO_DISCOVER
-    inputType: FreeText
-    description: Automatically register table in REST Catalog on first write
-    defaultValue: true
-  - name: CATALOG_NAMESPACE
-    inputType: FreeText
-    description: Catalog namespace for table registration
-    defaultValue: default
-  - name: BATCH_SIZE
-    inputType: FreeText
-    description: Number of messages to batch before writing to storage
-    defaultValue: 1000
-  - name: COMMIT_INTERVAL
-    inputType: FreeText
-    description: Kafka commit interval in seconds
-    defaultValue: 30
-  - name: KAFKA_KEY_DESERIALIZER
-    inputType: FreeText
-    description: The key deserializer to use
-    defaultValue: str
-  - name: KAFKA_VALUE_DESERIALIZER
-    inputType: FreeText
-    description: the value deserializer to use
-    defaultValue: json
-  - name: CONSUMER_GROUP
-    inputType: FreeText
-    description: Kafka consumer group name
-    defaultValue: s3_direct_sink_v1.0
-  - name: AUTO_OFFSET_RESET
-    inputType: FreeText
-    multiline: false
-    description: Where to start consuming if no offset exists
-    defaultValue: earliest
-  - name: LOGLEVEL
-    inputType: FreeText
-    description: set application logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-    defaultValue: INFO
-  - name: MAX_WRITE_WORKERS
-    inputType: FreeText
-    description: How many files can be written in parallel to storage at once (based on partitioning + batch size)
-    defaultValue: 10
+- name: input
+  inputType: InputTopic
+  multiline: false
+  description: Name of the Kafka input topic to consume from
+  defaultValue: tsbs_data_transformed
+  required: true
+# Note: Quix__Workspace__Id is auto-injected by the platform - paths will be: {workspaceId}/data-lake/time-series/...
+- name: TABLE_NAME
+  inputType: FreeText
+  description: Table name for data organization and registration, else defaults to topic name
+  defaultValue: sensordata
+- name: HIVE_COLUMNS
+  inputType: FreeText
+  multiline: false
+  description: Comma-separated list of columns for Hive partitioning. Include year/month/day/hour to extract from TIMESTAMP_COLUMN (e.g., location,year,month,day,sensor_type)
+  defaultValue: region,datacenter,hostname
+- name: TIMESTAMP_COLUMN
+  inputType: FreeText
+  description: Column containing timestamp values to extract year/month/day/hour from
+  defaultValue: ts_ms
+- name: CATALOG_URL
+  inputType: FreeText
+  multiline: false
+  description: REST Catalog URL for optional table registration (leave empty to skip)
+- name: CATALOG_AUTH_TOKEN
+  inputType: Secret
+  multiline: false
+  description: If using a catalog, the respective auth token to access it
+- name: AUTO_DISCOVER
+  inputType: FreeText
+  description: Automatically register table in REST Catalog on first write
+  defaultValue: true
+- name: CATALOG_NAMESPACE
+  inputType: FreeText
+  description: Catalog namespace for table registration
+  defaultValue: default
+- name: BATCH_SIZE
+  inputType: FreeText
+  description: Number of messages to batch before writing to storage
+  defaultValue: 1000
+- name: COMMIT_INTERVAL
+  inputType: FreeText
+  description: Kafka commit interval in seconds
+  defaultValue: 30
+- name: KAFKA_KEY_DESERIALIZER
+  inputType: FreeText
+  description: The key deserializer to use
+  defaultValue: str
+- name: KAFKA_VALUE_DESERIALIZER
+  inputType: FreeText
+  description: the value deserializer to use
+  defaultValue: json
+- name: CONSUMER_GROUP
+  inputType: FreeText
+  description: Kafka consumer group name
+  defaultValue: s3_direct_sink_v1.0
+- name: AUTO_OFFSET_RESET
+  inputType: FreeText
+  multiline: false
+  description: Where to start consuming if no offset exists
+  defaultValue: earliest
+- name: LOGLEVEL
+  inputType: FreeText
+  description: set application logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+  defaultValue: INFO
+- name: MAX_WRITE_WORKERS
+  inputType: FreeText
+  description: How many files can be written in parallel to storage at once (based on partitioning + batch size)
+  defaultValue: 10
 dockerfile: dockerfile
 runEntryPoint: main.py
 defaultFile: main.py
