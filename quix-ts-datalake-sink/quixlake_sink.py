@@ -33,6 +33,7 @@ class QuixLakeSink(BatchingSink):
         self,
         s3_prefix: str,
         table_name: str,
+        workspace_id: str = "",
         hive_columns: List[str] = None,
         timestamp_column: str = "ts_ms",
         catalog_url: Optional[str] = None,
@@ -46,8 +47,9 @@ class QuixLakeSink(BatchingSink):
         Initialize Blob Storage Sink
 
         Args:
-            s3_prefix: Path prefix for data files within the bucket
+            s3_prefix: Path prefix for data files (e.g., "data-lake/time-series")
             table_name: Table name for registration
+            workspace_id: Workspace ID for workspace-scoped storage paths (auto-injected by platform)
             hive_columns: List of columns to use for Hive partitioning. Include 'year', 'month',
                          'day', 'hour' to extract these from timestamp_column
             timestamp_column: Column containing timestamp to extract time partitions from
@@ -60,6 +62,7 @@ class QuixLakeSink(BatchingSink):
         """
         self.s3_prefix = s3_prefix
         self.table_name = table_name
+        self.workspace_id = workspace_id
         self.hive_columns = hive_columns or []
         self.timestamp_column = timestamp_column
         self._catalog = CatalogClient(catalog_url, catalog_auth_token) if catalog_url else None
@@ -92,7 +95,10 @@ class QuixLakeSink(BatchingSink):
 
         # Extract bucket name from quixportal configuration
         self._s3_bucket = get_bucket_name()
-        logger.info(f"Storage Target: s3://{self._s3_bucket}/{self.s3_prefix}/{self.table_name}")
+
+        # Log storage target with workspace path if set
+        storage_path = f"{self.workspace_id}/{self.s3_prefix}" if self.workspace_id else self.s3_prefix
+        logger.info(f"Storage Target: s3://{self._s3_bucket}/{storage_path}/{self.table_name}")
         logger.info(f"Partitioning: hive_columns={self.hive_columns}")
 
         if self._catalog and self.auto_discover:
@@ -100,8 +106,9 @@ class QuixLakeSink(BatchingSink):
 
         try:
             # Initialize BlobStorageClient via quixportal
+            # workspace_id is passed as base_path to scope all operations to the workspace
             self._blob_client = BlobStorageClient(
-                base_path="",  # Base path is configured via Quix__BlobStorage__Connection__Json
+                base_path=self.workspace_id,
                 max_workers=self._max_workers
             )
 
@@ -293,7 +300,11 @@ class QuixLakeSink(BatchingSink):
 
             # Table doesn't exist, create it
             # Note: Location must be full S3 URI for catalog (API uses this with DuckDB)
-            location = f"s3://{self.s3_bucket}/{self.s3_prefix}/{self.table_name}"
+            # Include workspace_id in the path if set (for workspace-scoped storage)
+            if self.workspace_id:
+                location = f"s3://{self.s3_bucket}/{self.workspace_id}/{self.s3_prefix}/{self.table_name}"
+            else:
+                location = f"s3://{self.s3_bucket}/{self.s3_prefix}/{self.table_name}"
 
             # Define partition spec based on configuration
             # For dynamic partition discovery, create table without partition spec
@@ -494,7 +505,11 @@ class QuixLakeSink(BatchingSink):
                 partition_values = item['partition_values']
 
                 # Build file path as full S3 URI for catalog (API uses this with DuckDB)
-                file_path = f"s3://{self.s3_bucket}/{storage_key}"
+                # Include workspace_id if set (for workspace-scoped storage)
+                if self.workspace_id:
+                    file_path = f"s3://{self.s3_bucket}/{self.workspace_id}/{storage_key}"
+                else:
+                    file_path = f"s3://{self.s3_bucket}/{storage_key}"
 
                 # Build partition values dict
                 partition_dict = {}
