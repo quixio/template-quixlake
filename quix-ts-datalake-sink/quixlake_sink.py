@@ -318,7 +318,7 @@ class QuixLakeSink(BatchingSink):
                     "location": location,
                     "partition_spec": partition_spec,  # Empty for dynamic discovery
                     "properties": {
-                        "created_by": "quix-lake-sink",
+                        "created_by": "quix-ts-datalake-sink",
                         "auto_discovered": "false",
                         "expected_partitions": self.hive_columns.copy()  # Store expected partitions in properties
                     }
