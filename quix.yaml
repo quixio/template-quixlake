@@ -9,6 +9,8 @@ deployments:
   - name: Quix TS Datalake API
     image: quixcontainerregistry.azurecr.io/quix-datalake-ts-api:20251119.1-master
     deploymentType: Service
+    blobStorage:
+      bind: true
     resources:
       cpu: 200
       memory: 1000
@@ -59,6 +61,8 @@ deployments:
   - name: Quix TS Datalake Catalog
     image: quixcontainerregistry.azurecr.io/quix-datalake-ts-catalog:20251119.1-master
     deploymentType: Service
+    blobStorage:
+      bind: true
     resources:
       cpu: 200
       memory: 500
@@ -236,6 +240,8 @@ deployments:
     application: quix-ts-datalake-sink
     version: latest
     deploymentType: Service
+    blobStorage:
+      bind: true
     resources:
       cpu: 200
       memory: 500
