@@ -9,6 +9,8 @@ deployments:
   - name: Quix TS Datalake API
     image: quixcontainerregistry.azurecr.io/quix-datalake-ts-api:20251119.1-master
     deploymentType: Service
+    blobStorage:
+      bind: true
     resources:
       cpu: 200
       memory: 1000
@@ -25,34 +27,10 @@ deployments:
         - port: 80
           targetPort: 80
     variables:
-      - name: S3_BUCKET
-        inputType: FreeText
-        description: S3 bucket name for QuixLake data storage (REQUIRED)
-        value: quixdatalaketest
-      - name: S3_PREFIX
-        inputType: FreeText
-        description: S3 prefix/folder for data objects
-        value: ts_test
-      - name: AWS_REGION
-        inputType: FreeText
-        description: AWS region for S3 bucket
-        value: local
       - name: CATALOG_URL
         inputType: FreeText
         description: REST Catalog service URL
         value: http://iceberg-catalog:80
-      - name: AWS_ACCESS_KEY_ID
-        inputType: Secret
-        description: AWS Access Key ID (leave empty to use IAM roles)
-        secretKey: s3_user
-      - name: AWS_SECRET_ACCESS_KEY
-        inputType: Secret
-        description: AWS Secret Access Key (leave empty to use IAM roles)
-        secretKey: s3_secret
-      - name: AWS_ENDPOINT_URL
-        inputType: FreeText
-        description: S3 endpoint url (for non-AWS endpoints)
-        value: http://minio:9000
   - name: Quix TS Query UI
     image: quixcontainerregistry.azurecr.io/quix-datalake-ts-ui:20251119.1-master
     deploymentType: Service
@@ -83,6 +61,8 @@ deployments:
   - name: Quix TS Datalake Catalog
     image: quixcontainerregistry.azurecr.io/quix-datalake-ts-catalog:20251119.1-master
     deploymentType: Service
+    blobStorage:
+      bind: true
     resources:
       cpu: 200
       memory: 500
@@ -96,34 +76,6 @@ deployments:
         - port: 80
           targetPort: 5001
     variables:
-      - name: S3_BUCKET
-        inputType: FreeText
-        description: S3 bucket name for QuixLake data and catalog storage
-        value: quixdatalaketest
-      - name: S3_PREFIX
-        inputType: FreeText
-        description: S3 prefix/folder for data objects
-        value: ts_test
-      - name: CATALOG_PREFIX
-        inputType: FreeText
-        description: S3 prefix/folder for catalog metadata
-        value: catalog
-      - name: AWS_REGION
-        inputType: FreeText
-        description: AWS region for S3 bucket
-        value: eu-west-2
-      - name: PORT
-        inputType: FreeText
-        description: Port for the REST catalog service
-        value: 5001
-      - name: AWS_ACCESS_KEY_ID
-        inputType: Secret
-        description: AWS Access Key ID (leave empty to use IAM roles)
-        secretKey: s3_user
-      - name: AWS_SECRET_ACCESS_KEY
-        inputType: Secret
-        description: AWS Secret Access Key (leave empty to use IAM roles)
-        secretKey: s3_secret
       - name: POSTGRES_HOST
         inputType: FreeText
         description: PostgreSQL host address
@@ -288,6 +240,8 @@ deployments:
     application: quix-ts-datalake-sink
     version: latest
     deploymentType: Service
+    blobStorage:
+      bind: true
     resources:
       cpu: 200
       memory: 500
