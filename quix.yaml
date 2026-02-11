@@ -7,7 +7,7 @@ metadata:
 # This section describes the Deployments of the data pipeline
 deployments:
   - name: Quix TS Datalake API
-    image: quixcontainerregistry.azurecr.io/quix-datalake-ts-api:20251119.1-master
+    image: quixcontainerregistry.azurecr.io/quix-datalake-ts-api:20260211.1-master
     deploymentType: Service
     blobStorage:
       bind: true
@@ -32,7 +32,7 @@ deployments:
         description: REST Catalog service URL
         value: http://iceberg-catalog:80
   - name: Quix TS Query UI
-    image: quixcontainerregistry.azurecr.io/quix-datalake-ts-ui:20251119.1-master
+    image: quixcontainerregistry.azurecr.io/quix-datalake-ts-ui:20260211.1-master
     deploymentType: Service
     resources:
       cpu: 200
@@ -59,7 +59,7 @@ deployments:
         label: Data Explorer
         icon: search
   - name: Quix TS Datalake Catalog
-    image: quixcontainerregistry.azurecr.io/quix-datalake-ts-catalog:20251119.1-master
+    image: quixcontainerregistry.azurecr.io/quix-datalake-ts-catalog:20260211.1-master
     deploymentType: Service
     blobStorage:
       bind: true
@@ -252,15 +252,6 @@ deployments:
         description: Name of the Kafka input topic to consume from
         required: true
         value: tsbs_data_transformed
-      - name: S3_BUCKET
-        inputType: FreeText
-        description: S3 bucket name for storing Parquet files
-        required: true
-        value: quixlake
-      - name: S3_PREFIX
-        inputType: FreeText
-        description: S3 prefix/path for data files
-        value: data
       - name: TABLE_NAME
         inputType: FreeText
         description: Table name for data organization and registration, else defaults to topic name
@@ -313,22 +304,6 @@ deployments:
         inputType: FreeText
         description: Where to start consuming if no offset exists
         value: earliest
-      - name: AWS_ACCESS_KEY_ID
-        inputType: Secret
-        description: AWS Access Key ID for S3 access
-        secretKey: s3_user
-      - name: AWS_SECRET_ACCESS_KEY
-        inputType: Secret
-        description: AWS Secret Access Key for S3 access
-        secretKey: s3_secret
-      - name: AWS_REGION
-        inputType: FreeText
-        description: AWS region for S3 bucket
-        value: local
-      - name: AWS_ENDPOINT_URL
-        inputType: FreeText
-        description: S3 endpoint url (for non-AWS endpoints)
-        value: http://minio-proxy
       - name: LOGLEVEL
         inputType: FreeText
         description: set application logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
