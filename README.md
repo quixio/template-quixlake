@@ -144,7 +144,7 @@ Kafka-to-S3 sink connector that:
 - Writes streaming data as Hive-partitioned Parquet files
 - Supports time-based and custom partitioning
 - Automatically registers tables in catalog
-- Handles schema evolution
+- Automatic schema detection from data
 
 [View detailed README](./quix-ts-datalake-sink/README.md)
 
@@ -183,7 +183,7 @@ Public access proxy for MinIO in Quix platform.
 
 - **Real-time Ingestion**: Stream data from Kafka directly to S3 as Parquet
 - **High-Performance Queries**: DuckDB provides sub-second analytical queries
-- **Schema Evolution**: Automatic schema detection and evolution support
+- **Automatic Schema Detection**: Schema automatically inferred from incoming data
 - **Partition Pruning**: Efficient queries using Hive-style partitioning
 - **Table Discovery**: Automatically discover and register existing S3 data
 - **Scalable Storage**: S3-based storage scales to petabytes
@@ -209,11 +209,13 @@ Public access proxy for MinIO in Quix platform.
 
    Set the following secrets in your Quix environment:
    ```
-   minio_user: admin
-   minio_password: <your-secure-password>
+   s3_user: admin
+   s3_secret: <your-secure-password>
    postgres_password: <your-secure-password>
    config_ui_auth_token: <your-auth-token>
    ```
+
+   > For detailed setup instructions, see [SETUP.md](SETUP.md).
 
 3. **Start the Pipeline**
 
@@ -242,18 +244,13 @@ Public access proxy for MinIO in Quix platform.
 
 ### Storage Configuration
 
-Configure S3 storage (or use included MinIO):
+Storage is managed through the Quix platform's blob storage binding. When deployed, services with `blobStorage: bind: true` in their configuration automatically receive storage credentials via the `Quix__BlobStorage__Connection__Json` environment variable.
 
-```yaml
-S3_BUCKET: quixdatalaketest          # Your bucket name
-S3_PREFIX: ts_test                   # Data folder prefix
-AWS_REGION: eu-west-2                # AWS region
-AWS_ENDPOINT_URL: http://minio:9000  # For MinIO; remove for AWS S3
-```
+The template includes MinIO for local/development storage. For production, see [Migrating to AWS S3](SETUP.md#migrating-to-aws-s3) in the setup guide.
 
 ### Catalog Configuration
 
-PostgreSQL backend configuration:
+PostgreSQL backend configuration (automatically configured):
 
 ```yaml
 CATALOG_BACKEND: postgres
@@ -273,9 +270,10 @@ COMMIT_INTERVAL: 30                  # Commit interval (seconds)
 HIVE_COLUMNS: region,datacenter,hostname  # Partition columns
 TIMESTAMP_COLUMN: ts_ms              # Time column for partitioning
 AUTO_DISCOVER: true                  # Auto-register in catalog
+MAX_WRITE_WORKERS: 10                # Parallel upload threads
 ```
 
-See `quix.yaml` for complete configuration options.
+See `quix.yaml` for complete configuration options and the [sink README](./quix-ts-datalake-sink/README.md) for detailed documentation.
 
 ## Data Flow
 
@@ -566,22 +564,13 @@ TIMESTAMP_COLUMN: purchase_date
 
 ### Using AWS S3 Instead of MinIO
 
-1. **Create S3 Bucket** in your AWS account
+For detailed instructions on migrating from MinIO to AWS S3 (or other S3-compatible storage providers), see the [Migrating to AWS S3](SETUP.md#migrating-to-aws-s3) section in the setup guide.
 
-2. **Update Configuration** in all deployments:
-   ```yaml
-   S3_BUCKET: your-aws-bucket-name
-   AWS_REGION: us-east-1  # Your region
-   AWS_ENDPOINT_URL: ""   # Remove this line
-   ```
-
-3. **Configure Secrets**:
-   ```
-   minio_user: <your-aws-access-key-id>
-   minio_password: <your-aws-secret-access-key>
-   ```
-
-4. **Remove MinIO Deployments** if not needed (optional)
+The migration involves:
+1. Creating an S3 bucket in your AWS account
+2. Updating storage variables in relevant deployments
+3. Configuring `s3_user` and `s3_secret` secrets with AWS IAM credentials
+4. Optionally removing MinIO deployments
 
 ### Scaling Considerations
 
@@ -605,6 +594,7 @@ TIMESTAMP_COLUMN: purchase_date
 ### Project Structure
 ```
 template-quixlake/
+├── images/                     # Documentation images
 ├── minio/                      # MinIO application
 ├── minio-proxy/                # MinIO proxy application
 ├── postgresql/                 # PostgreSQL application
@@ -613,6 +603,8 @@ template-quixlake/
 ├── tsbs-transformer/          # Transformer application
 ├── quix.yaml                  # Quix deployment configuration
 ├── template.json              # Template metadata
+├── SETUP.md                   # Initial setup guide
+├── LICENSE                    # Apache 2.0 license
 └── README.md                  # This file
 ```
 
