@@ -273,6 +273,7 @@ deployments:
       - name: CATALOG_AUTH_TOKEN
         inputType: Secret
         description: If using a catalog, the respective auth token to access it
+        required: true
         secretKey: config_ui_auth_token
       - name: AUTO_DISCOVER
         inputType: FreeText
