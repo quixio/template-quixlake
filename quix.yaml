@@ -132,6 +132,7 @@ deployments:
   - name: minio
     application: minio
     version: latest
+    group: Minio
     deploymentType: Service
     resources:
       cpu: 1000
@@ -159,6 +160,7 @@ deployments:
   - name: Minio proxy
     application: minio-proxy
     version: latest
+    group: Minio
     deploymentType: Service
     resources:
       cpu: 200
