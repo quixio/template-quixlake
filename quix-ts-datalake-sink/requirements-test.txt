@@ -1,0 +1,4 @@
+# Test dependencies for quix-ts-datalake-sink
+-r requirements.txt
+pytest
+pytest-mock

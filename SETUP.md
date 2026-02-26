@@ -29,17 +29,17 @@ For more details on secrets management, see the [Quix Secrets Management documen
 | Secret Key | Used By | Description |
 |------------|---------|-------------|
 | `s3_user` | MinIO, API, Catalog, Sink | Username for S3-compatible storage access |
-| `s3_password` | MinIO, API, Catalog, Sink | Password for S3-compatible storage access |
+| `s3_secret` | MinIO, API, Catalog, Sink | Password for S3-compatible storage access |
 | `postgres_password` | PostgreSQL, Catalog | Password for PostgreSQL database |
 
 ### Setting Up Secrets
 
-#### MinIO Credentials (`s3_user` and `s3_password`)
+#### MinIO Credentials (`s3_user` and `s3_secret`)
 
 The initial setup uses **MinIO** as a local S3-compatible storage. Since MinIO is deployed fresh with your environment, you define these credentials yourself:
 
 1. **Choose a username** for `s3_user` (e.g., `admin`, `minio_admin`, etc.)
-2. **Choose a strong password** for `s3_password`
+2. **Choose a strong password** for `s3_secret`
 
 These values will be used to:
 - Initialize MinIO with these credentials (`MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD`)
@@ -61,7 +61,7 @@ This password will be used to:
 
 ```
 s3_user:          myadminuser
-s3_password:      MySecureP@ssw0rd!2024
+s3_secret:      MySecureP@ssw0rd!2024
 postgres_password: AnotherSecureP@ss!
 ```
 
@@ -135,7 +135,7 @@ Update your secrets with AWS IAM credentials:
 | Secret Key | Value |
 |------------|-------|
 | `s3_user` | Your AWS Access Key ID |
-| `s3_password` | Your AWS Secret Access Key |
+| `s3_secret` | Your AWS Secret Access Key |
 
 ### Example AWS Configuration
 
@@ -151,7 +151,7 @@ S3_BUCKET: my-company-datalake
 **Secrets:**
 ```
 s3_user:     AKIAIOSFODNN7EXAMPLE
-s3_password: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+s3_secret: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 ```
 
 ### AWS IAM Requirements
@@ -195,7 +195,7 @@ The same approach works for other S3-compatible storage providers (e.g., Google 
 1. Set `AWS_ENDPOINT_URL` to the provider's S3-compatible endpoint
 2. Set `AWS_REGION` as required by the provider
 3. Update `S3_BUCKET` to your bucket name
-4. Configure `s3_user` and `s3_password` secrets with your provider's credentials
+4. Configure `s3_user` and `s3_secret` secrets with your provider's credentials
 
 ---
 
@@ -203,10 +203,10 @@ The same approach works for other S3-compatible storage providers (e.g., Google 
 
 ### Services failing to start
 - Verify all secrets are configured correctly
-- Check that secret names match exactly (`s3_user`, `s3_password`, `postgres_password`)
+- Check that secret names match exactly (`s3_user`, `s3_secret`, `postgres_password`)
 
 ### Cannot access MinIO
-- Ensure `s3_user` and `s3_password` secrets are set
+- Ensure `s3_user` and `s3_secret` secrets are set
 - Check MinIO deployment logs for authentication errors
 
 ### Catalog connection errors

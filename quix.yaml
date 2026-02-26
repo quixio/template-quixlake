@@ -132,6 +132,7 @@ deployments:
   - name: minio
     application: minio
     version: latest
+    group: Minio
     deploymentType: Service
     resources:
       cpu: 1000
@@ -159,6 +160,7 @@ deployments:
   - name: Minio proxy
     application: minio-proxy
     version: latest
+    group: Minio
     deploymentType: Service
     resources:
       cpu: 200
@@ -271,6 +273,7 @@ deployments:
       - name: CATALOG_AUTH_TOKEN
         inputType: Secret
         description: If using a catalog, the respective auth token to access it
+        required: true
         secretKey: config_ui_auth_token
       - name: AUTO_DISCOVER
         inputType: FreeText

@@ -1,17 +1,37 @@
-# QuixLake v2 Timeseries Preview (Experimental)
+# Quix DataLake Timeseries
 
 > **Experimental Preview**
 >
-> This template provides early access to the **Timeseries data management and queries** feature of QuixLake v2.
+> This template provides early access to the **Timeseries data management and queries** feature of Quix DataLake.
 > Deploy this template to test the functionality and provide feedback before it becomes fully integrated into the Quix platform.
->
-> Note: This is an experimental release. Features and APIs may change before final integration.
 
-A complete data lake solution built on DuckDB, S3, and Apache Iceberg for high-performance streaming data analytics.
+A real-time data lake platform for streaming time-series data from Kafka into queryable storage.
+
+## What Problem Does This Solve?
+
+You have streaming data in Kafka (IoT sensors, events, logs, metrics) and you want to:
+- **Store it long-term** in cost-effective object storage
+- **Query it with SQL** for analytics and dashboards
+- **Partition by time** for efficient queries on time-series data
+
+```
+Kafka → Sink → S3/Azure/GCP (Parquet files) → Catalog → Query API
+         ↓                                        ↓
+    Hive partitions                          SQL via DuckDB
+    (year/month/day)
+```
+
+**Example use case:**
+1. IoT sensors publish readings to Kafka
+2. Sink writes to `s3://bucket/sensors/year=2026/month=02/day=24/*.parquet`
+3. Catalog tracks all files and partitions
+4. Query: `SELECT avg(temperature) FROM sensors WHERE year='2026' AND month='02'`
+
+In short: It's a streaming-first alternative to traditional data warehouses, optimized for time-series workloads.
 
 ## Overview
 
-QuixLake is a production-ready data lake platform that enables real-time ingestion, storage, and querying of streaming data. It combines Apache Kafka for streaming, S3 for object storage, Apache Iceberg for table format, and DuckDB for blazing-fast SQL analytics.
+Quix DataLake Timeseries is a production-ready data lake platform that enables real-time ingestion, storage, and querying of streaming data. It combines Apache Kafka for streaming, S3/Azure/GCP for object storage, Hive-partitioned Parquet for the table format, and DuckDB for blazing-fast SQL analytics.
 
 This template deploys a fully configured QuixLake instance with:
 - Pre-built, production-ready container images for core services
@@ -25,11 +45,11 @@ This template deploys a fully configured QuixLake instance with:
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│                    QuixLake DataLake                     │
+│                 Quix DataLake Timeseries                 │
 │                                                          │
 │  ┌─────────────────┐      ┌─────────────────────────┐  │
-│  │  Iceberg Catalog│◄────►│  PostgreSQL Database    │  │
-│  │  (REST API)     │      │  - Table metadata       │  │
+│  │  REST Catalog   │◄────►│  PostgreSQL Database    │  │
+│  │                 │      │  - Table metadata       │  │
 │  └────────┬────────┘      │  - File manifests       │  │
 │           │               │  - Partition info       │  │
 │           │               └─────────────────────────┘  │
@@ -111,6 +131,32 @@ This template deploys a fully configured QuixLake instance with:
 └──────────────────────────────────────────────────────────┘
 ```
 
+## Dependencies
+
+This template uses the Quix DataLake Timeseries platform components:
+
+### Core Services
+
+| Component | Description |
+|-----------|-------------|
+| `quix-ts-datalake-catalog` | REST Catalog service with PostgreSQL backend for table management, partition tracking, and manifest storage |
+| `quix-ts-datalake-api` | Query API supporting SQL queries via DuckDB, table compaction, and partition management (~2ms query performance) |
+| `quix-ts-datalake-sink` | Kafka sink that streams data to S3/Azure/GCP/MinIO as Hive-partitioned Parquet files with automatic catalog registration |
+| `quix-ts-datalake-ui` | Web-based SQL query interface |
+
+### Client Libraries
+
+| Package | Install | Description |
+|---------|---------|-------------|
+| `quixstreams[quixdatalake]` | `pip install quixstreams[quixdatalake]` | QuixStreams sink for writing Kafka data to the data lake |
+
+### Key Features
+
+- **Multi-cloud storage**: AWS S3, Azure Blob Storage, GCP Cloud Storage, MinIO
+- **Hive-style partitioning**: Automatic time-based (year/month/day/hour) and column-based partitioning
+- **High-performance queries**: DuckDB-powered SQL with connection pooling and streaming support
+- **Incremental compaction**: Memory-efficient file consolidation with continuous catalog updates
+
 ## Components
 
 ### Core Services (Pre-built Images)
@@ -120,7 +166,7 @@ DuckDB-based REST API for querying S3 data with:
 - SQL query execution over Parquet files
 - Table discovery and automatic registration
 - Partition management and pruning
-- Schema evolution support
+- Automatic schema detection
 - Grafana datasource integration
 
 #### 2. **Quix TS Query UI**
@@ -140,11 +186,11 @@ Metadata catalog service featuring:
 ### Data Pipeline Components
 
 #### 4. **Quix TS Datalake Sink**
-Kafka-to-S3 sink connector that:
+Kafka-to-S3 sink using `quixstreams[quixdatalake]`:
 - Writes streaming data as Hive-partitioned Parquet files
 - Supports time-based and custom partitioning
 - Automatically registers tables in catalog
-- Handles schema evolution
+- Automatic schema detection from data
 
 [View detailed README](./quix-ts-datalake-sink/README.md)
 
@@ -164,7 +210,7 @@ Transforms raw TSBS data into optimized format for the data lake.
 ### Infrastructure Services
 
 #### 7. **PostgreSQL**
-Database backend for the Iceberg Catalog, storing:
+Database backend for the Catalog, storing:
 - Table metadata and schemas
 - File manifests
 - Partition information
@@ -183,7 +229,7 @@ Public access proxy for MinIO in Quix platform.
 
 - **Real-time Ingestion**: Stream data from Kafka directly to S3 as Parquet
 - **High-Performance Queries**: DuckDB provides sub-second analytical queries
-- **Schema Evolution**: Automatic schema detection and evolution support
+- **Automatic Schema Detection**: Schema automatically inferred from incoming data
 - **Partition Pruning**: Efficient queries using Hive-style partitioning
 - **Table Discovery**: Automatically discover and register existing S3 data
 - **Scalable Storage**: S3-based storage scales to petabytes
@@ -209,11 +255,13 @@ Public access proxy for MinIO in Quix platform.
 
    Set the following secrets in your Quix environment:
    ```
-   minio_user: admin
-   minio_password: <your-secure-password>
+   s3_user: admin
+   s3_secret: <your-secure-password>
    postgres_password: <your-secure-password>
    config_ui_auth_token: <your-auth-token>
    ```
+
+   > For detailed setup instructions, see [SETUP.md](SETUP.md).
 
 3. **Start the Pipeline**
 
@@ -242,18 +290,13 @@ Public access proxy for MinIO in Quix platform.
 
 ### Storage Configuration
 
-Configure S3 storage (or use included MinIO):
+Storage is managed through the Quix platform's blob storage binding. When deployed, services with `blobStorage: bind: true` in their configuration automatically receive storage credentials via the `Quix__BlobStorage__Connection__Json` environment variable.
 
-```yaml
-S3_BUCKET: quixdatalaketest          # Your bucket name
-S3_PREFIX: ts_test                   # Data folder prefix
-AWS_REGION: eu-west-2                # AWS region
-AWS_ENDPOINT_URL: http://minio:9000  # For MinIO; remove for AWS S3
-```
+The template includes MinIO for local/development storage. For production, see [Migrating to AWS S3](SETUP.md#migrating-to-aws-s3) in the setup guide.
 
 ### Catalog Configuration
 
-PostgreSQL backend configuration:
+PostgreSQL backend configuration (automatically configured):
 
 ```yaml
 CATALOG_BACKEND: postgres
@@ -273,9 +316,10 @@ COMMIT_INTERVAL: 30                  # Commit interval (seconds)
 HIVE_COLUMNS: region,datacenter,hostname  # Partition columns
 TIMESTAMP_COLUMN: ts_ms              # Time column for partitioning
 AUTO_DISCOVER: true                  # Auto-register in catalog
+MAX_WRITE_WORKERS: 10                # Parallel upload threads
 ```
 
-See `quix.yaml` for complete configuration options.
+See `quix.yaml` for complete configuration options and the [sink README](./quix-ts-datalake-sink/README.md) for detailed documentation.
 
 ## Data Flow
 
@@ -283,7 +327,7 @@ See `quix.yaml` for complete configuration options.
 2. **Transformation**: Transformer enriches and formats the data
 3. **Streaming**: Data flows through Kafka topics
 4. **Storage**: Sink writes batches to S3 as partitioned Parquet files
-5. **Registration**: Tables automatically register in Iceberg Catalog
+5. **Registration**: Tables automatically register in Catalog
 6. **Query**: API uses DuckDB to query Parquet files from S3
 7. **Visualization**: Query UI provides interactive data exploration
 
@@ -442,10 +486,10 @@ Configure Grafana datasource with your QuixLake API URL.
 ### Service Health
 
 Check service status:
-- QuixLake API: `GET https://quixlake-<workspace>.deployments.quix.io/health`
+- Quix DataLake API: `GET https://quixlake-<workspace>.deployments.quix.io/health`
 - Query UI: Access via public URL
 - MinIO Console: Access via MinIO proxy public URL
-- Catalog: `GET https://iceberg-catalog-<workspace>.deployments.quix.io/cache-status`
+- Catalog: `GET https://ts-datalake-catalog-<workspace>.deployments.quix.io/cache-status`
 
 ### Metrics
 
@@ -566,22 +610,13 @@ TIMESTAMP_COLUMN: purchase_date
 
 ### Using AWS S3 Instead of MinIO
 
-1. **Create S3 Bucket** in your AWS account
+For detailed instructions on migrating from MinIO to AWS S3 (or other S3-compatible storage providers), see the [Migrating to AWS S3](SETUP.md#migrating-to-aws-s3) section in the setup guide.
 
-2. **Update Configuration** in all deployments:
-   ```yaml
-   S3_BUCKET: your-aws-bucket-name
-   AWS_REGION: us-east-1  # Your region
-   AWS_ENDPOINT_URL: ""   # Remove this line
-   ```
-
-3. **Configure Secrets**:
-   ```
-   minio_user: <your-aws-access-key-id>
-   minio_password: <your-aws-secret-access-key>
-   ```
-
-4. **Remove MinIO Deployments** if not needed (optional)
+The migration involves:
+1. Creating an S3 bucket in your AWS account
+2. Updating storage variables in relevant deployments
+3. Configuring `s3_user` and `s3_secret` secrets with AWS IAM credentials
+4. Optionally removing MinIO deployments
 
 ### Scaling Considerations
 
@@ -605,6 +640,7 @@ TIMESTAMP_COLUMN: purchase_date
 ### Project Structure
 ```
 template-quixlake/
+├── images/                     # Documentation images
 ├── minio/                      # MinIO application
 ├── minio-proxy/                # MinIO proxy application
 ├── postgresql/                 # PostgreSQL application
@@ -613,6 +649,8 @@ template-quixlake/
 ├── tsbs-transformer/          # Transformer application
 ├── quix.yaml                  # Quix deployment configuration
 ├── template.json              # Template metadata
+├── SETUP.md                   # Initial setup guide
+├── LICENSE                    # Apache 2.0 license
 └── README.md                  # This file
 ```
 
@@ -620,12 +658,13 @@ Note: Core services (API, UI, Catalog) use pre-built container images from Quix 
 
 ### Customizing the Sink
 
-The sink source code is included in `quix-ts-datalake-sink/`. To customize:
+The sink application is in `quix-ts-datalake-sink/` and uses `quixstreams[quixdatalake]`. To customize:
 
-1. Edit `quixlake_sink.py` or `main.py`
-2. Update `dockerfile` if needed
-3. Build and push to your own registry
-4. Update `image:` in `quix.yaml`
+1. Edit `main.py` to adjust configuration or add pre-processing
+2. The core sink logic is provided by `QuixTSDataLakeSink` from QuixStreams
+3. Update `dockerfile` if needed
+4. Build and push to your own registry
+5. Update `image:` in `quix.yaml`
 
 ### Contributing
 
@@ -639,8 +678,8 @@ Contributions welcome! Please:
 
 - **Quix Platform**: [https://quix.io/](https://quix.io/)
 - **Documentation**: [https://docs.quix.io/](https://docs.quix.io/)
+- **QuixStreams**: [https://github.com/quixio/quix-streams](https://github.com/quixio/quix-streams)
 - **DuckDB**: [https://duckdb.org/](https://duckdb.org/)
-- **Apache Iceberg**: [https://iceberg.apache.org/](https://iceberg.apache.org/)
 - **Apache Parquet**: [https://parquet.apache.org/](https://parquet.apache.org/)
 
 ## Support
@@ -656,6 +695,7 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 ## Acknowledgments
 
 Built with open source technologies:
+- [QuixStreams](https://github.com/quixio/quix-streams) - Python stream processing library
 - [DuckDB](https://duckdb.org/) - Fast analytical database
 - [Apache Kafka](https://kafka.apache.org/) - Streaming platform
 - [Apache Parquet](https://parquet.apache.org/) - Columnar storage format
