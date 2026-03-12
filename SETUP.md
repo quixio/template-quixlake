@@ -28,22 +28,10 @@ For more details on secrets management, see the [Quix Secrets Management documen
 
 | Secret Key | Used By | Description |
 |------------|---------|-------------|
-| `s3_user` | MinIO, API, Catalog, Sink | Username for S3-compatible storage access |
-| `s3_secret` | MinIO, API, Catalog, Sink | Password for S3-compatible storage access |
 | `postgres_password` | PostgreSQL, Catalog | Password for PostgreSQL database |
+| `config_ui_auth_token` | Sink, API | Auth token for catalog and API access |
 
 ### Setting Up Secrets
-
-#### MinIO Credentials (`s3_user` and `s3_secret`)
-
-The initial setup uses **MinIO** as a local S3-compatible storage. Since MinIO is deployed fresh with your environment, you define these credentials yourself:
-
-1. **Choose a username** for `s3_user` (e.g., `admin`, `minio_admin`, etc.)
-2. **Choose a strong password** for `s3_secret`
-
-These values will be used to:
-- Initialize MinIO with these credentials (`MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD`)
-- Authenticate all services that access MinIO (`AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`)
 
 #### PostgreSQL Password (`postgres_password`)
 
@@ -60,9 +48,8 @@ This password will be used to:
 ### Example Secret Configuration
 
 ```
-s3_user:          myadminuser
-s3_secret:      MySecureP@ssw0rd!2024
-postgres_password: AnotherSecureP@ss!
+postgres_password: MySecureP@ssw0rd!2024
+config_ui_auth_token: <your-auth-token>
 ```
 
 ## Step 2: Verify Deployment
@@ -71,13 +58,11 @@ After the synchronization completes, verify all services are running:
 
 1. **Check Deployment Status** - Ensure all services start successfully:
    - PostgreSQL
-   - MinIO
-   - MinIO Proxy
    - Quix TS Datalake Catalog
    - Quix TS Datalake API
    - Quix TS Query UI
 
-2. **Verify MinIO** - Access the MinIO console through the MinIO Proxy public URL to confirm storage is working
+2. **Verify Storage** - Check deployment logs for services with `blobStorage: bind: true` to confirm blob storage credentials are injected
 
 ## Step 3: Run the Example Pipeline (Optional)
 
@@ -96,106 +81,11 @@ Then:
 
 ---
 
-## Migrating to AWS S3
+## Blob Storage
 
-If you want to use AWS S3 instead of the local MinIO storage, you'll need to update several variables.
+Storage is managed automatically by the Quix platform. Services with `blobStorage: bind: true` in their `app.yaml` or `quix.yaml` configuration receive blob storage credentials via the `Quix__BlobStorage__Connection__Json` environment variable at runtime. The `quixportal` library handles parsing these credentials and providing a unified filesystem interface across providers (AWS S3, Azure Blob Storage, GCP Cloud Storage).
 
-### Variables to Update
-
-The following variables control S3/storage connectivity and must be updated in **multiple deployments**:
-
-| Variable | Default Value | For AWS S3 |
-|----------|---------------|------------|
-| `AWS_ENDPOINT_URL` | `http://minio:9000` | `https://s3.<region>.amazonaws.com` |
-| `AWS_REGION` | `local` | Your AWS region (e.g., `eu-west-1`, `us-east-1`) |
-| `S3_BUCKET` | `quixdatalaketest` | Your AWS S3 bucket name |
-
-### Deployments to Update
-
-You must update these variables in the following deployments:
-
-1. **Quix TS Datalake API**
-   - `AWS_ENDPOINT_URL`: Set to `https://s3.<region>.amazonaws.com`
-   - `AWS_REGION`: Set to your AWS region
-   - `S3_BUCKET`: Set to your bucket name
-
-2. **Quix TS Datalake Catalog**
-   - `AWS_REGION`: Set to your AWS region
-   - `S3_BUCKET`: Set to your bucket name
-
-3. **quix-ts-datalake-sink**
-   - `AWS_ENDPOINT_URL`: Set to `https://s3.<region>.amazonaws.com`
-   - `AWS_REGION`: Set to your AWS region
-   - `S3_BUCKET`: Set to your bucket name
-
-### Update Secrets for AWS
-
-Update your secrets with AWS IAM credentials:
-
-| Secret Key | Value |
-|------------|-------|
-| `s3_user` | Your AWS Access Key ID |
-| `s3_secret` | Your AWS Secret Access Key |
-
-### Example AWS Configuration
-
-For a bucket named `my-company-datalake` in `eu-west-1`:
-
-**Variables (in each deployment):**
-```yaml
-AWS_ENDPOINT_URL: https://s3.eu-west-1.amazonaws.com
-AWS_REGION: eu-west-1
-S3_BUCKET: my-company-datalake
-```
-
-**Secrets:**
-```
-s3_user:     AKIAIOSFODNN7EXAMPLE
-s3_secret: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-```
-
-### AWS IAM Requirements
-
-Ensure your AWS IAM user/role has the following permissions on your S3 bucket:
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "s3:GetObject",
-        "s3:PutObject",
-        "s3:DeleteObject",
-        "s3:ListBucket"
-      ],
-      "Resource": [
-        "arn:aws:s3:::your-bucket-name",
-        "arn:aws:s3:::your-bucket-name/*"
-      ]
-    }
-  ]
-}
-```
-
-### Disable or Remove MinIO (Optional)
-
-After migrating to AWS S3, you can optionally stop or remove the MinIO-related deployments to save resources:
-
-- `minio`
-- `Minio proxy`
-
----
-
-## Other S3-Compatible Storage
-
-The same approach works for other S3-compatible storage providers (e.g., Google Cloud Storage, DigitalOcean Spaces, Cloudflare R2):
-
-1. Set `AWS_ENDPOINT_URL` to the provider's S3-compatible endpoint
-2. Set `AWS_REGION` as required by the provider
-3. Update `S3_BUCKET` to your bucket name
-4. Configure `s3_user` and `s3_secret` secrets with your provider's credentials
+No manual storage configuration is needed — the platform handles it.
 
 ---
 
@@ -203,18 +93,13 @@ The same approach works for other S3-compatible storage providers (e.g., Google 
 
 ### Services failing to start
 - Verify all secrets are configured correctly
-- Check that secret names match exactly (`s3_user`, `s3_secret`, `postgres_password`)
+- Check that secret names match exactly (`postgres_password`, `config_ui_auth_token`)
 
-### Cannot access MinIO
-- Ensure `s3_user` and `s3_secret` secrets are set
-- Check MinIO deployment logs for authentication errors
+### Storage access errors
+- Verify `blobStorage: bind: true` is set in the service's app.yaml/quix.yaml
+- Check deployment logs for `Quix__BlobStorage__Connection__Json` errors
+- Ensure blob storage is configured in your Quix environment
 
 ### Catalog connection errors
 - Verify `postgres_password` is set correctly
 - Check PostgreSQL is running and healthy
-
-### S3 access denied after AWS migration
-- Verify AWS credentials are correct
-- Check IAM permissions on the S3 bucket
-- Ensure `AWS_ENDPOINT_URL` is set to `https://s3.<region>.amazonaws.com` (not MinIO URL)
-- Verify `AWS_REGION` matches your bucket's region

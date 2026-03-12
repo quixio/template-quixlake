@@ -37,7 +37,7 @@ This template deploys a fully configured QuixLake instance with:
 - Pre-built, production-ready container images for core services
 - Example data pipeline with Time Series Benchmark Suite (TSBS) data
 - Interactive query UI for data exploration
-- S3-compatible MinIO storage for local development
+- Platform-managed blob storage (via `blobStorage: bind: true`)
 
 ## Architecture
 
@@ -56,8 +56,8 @@ This template deploys a fully configured QuixLake instance with:
 │           │                                            │
 │           ▼                                            │
 │  ┌─────────────────┐                                  │
-│  │   MinIO (S3)    │                                  │
-│  │ Object Storage  │                                  │
+│  │  Blob Storage   │                                  │
+│  │ (S3/Azure/GCP)  │                                  │
 │  │                 │                                  │
 │  │ Parquet Files:  │                                  │
 │  │ ├── table_1/    │                                  │
@@ -126,7 +126,7 @@ This template deploys a fully configured QuixLake instance with:
 │           │                                              │
 │           v                                              │
 │     [To DataLake]                                        │
-│      MinIO (S3)                                          │
+│      Blob Storage                                        │
 │                                                          │
 └──────────────────────────────────────────────────────────┘
 ```
@@ -141,7 +141,7 @@ This template uses the Quix DataLake Timeseries platform components:
 |-----------|-------------|
 | `quix-ts-datalake-catalog` | REST Catalog service with PostgreSQL backend for table management, partition tracking, and manifest storage |
 | `quix-ts-datalake-api` | Query API supporting SQL queries via DuckDB, table compaction, and partition management (~2ms query performance) |
-| `quix-ts-datalake-sink` | Kafka sink that streams data to S3/Azure/GCP/MinIO as Hive-partitioned Parquet files with automatic catalog registration |
+| `quix-ts-datalake-sink` | Kafka sink that streams data to blob storage as Hive-partitioned Parquet files with automatic catalog registration |
 | `quix-ts-datalake-ui` | Web-based SQL query interface |
 
 ### Client Libraries
@@ -152,7 +152,7 @@ This template uses the Quix DataLake Timeseries platform components:
 
 ### Key Features
 
-- **Multi-cloud storage**: AWS S3, Azure Blob Storage, GCP Cloud Storage, MinIO
+- **Multi-cloud storage**: AWS S3, Azure Blob Storage, GCP Cloud Storage
 - **Hive-style partitioning**: Automatic time-based (year/month/day/hour) and column-based partitioning
 - **High-performance queries**: DuckDB-powered SQL with connection pooling and streaming support
 - **Incremental compaction**: Memory-efficient file consolidation with continuous catalog updates
@@ -217,14 +217,6 @@ Database backend for the Catalog, storing:
 
 [View detailed README](./postgresql/README.md)
 
-#### 8. **MinIO**
-S3-compatible object storage for development and testing.
-
-[View detailed README](./minio/README.md)
-
-#### 9. **MinIO Proxy**
-Public access proxy for MinIO in Quix platform.
-
 ## Features
 
 - **Real-time Ingestion**: Stream data from Kafka directly to S3 as Parquet
@@ -242,7 +234,7 @@ Public access proxy for MinIO in Quix platform.
 ### Prerequisites
 
 - Quix account (sign up at [https://portal.platform.quix.io/signup](https://portal.platform.quix.io/signup))
-- AWS account (optional - template includes MinIO for local testing)
+- Blob storage configured in your Quix environment
 
 ### Quick Start
 
@@ -255,8 +247,6 @@ Public access proxy for MinIO in Quix platform.
 
    Set the following secrets in your Quix environment:
    ```
-   s3_user: admin
-   s3_secret: <your-secure-password>
    postgres_password: <your-secure-password>
    config_ui_auth_token: <your-auth-token>
    ```
@@ -267,7 +257,7 @@ Public access proxy for MinIO in Quix platform.
 
    The template deploys with:
    - All core services (API, UI, Catalog) automatically running
-   - MinIO storage ready for data
+   - Platform blob storage bound to services that need it
    - PostgreSQL catalog initialized
    - Example pipeline in "Example pipeline" group
 
@@ -290,9 +280,7 @@ Public access proxy for MinIO in Quix platform.
 
 ### Storage Configuration
 
-Storage is managed through the Quix platform's blob storage binding. When deployed, services with `blobStorage: bind: true` in their configuration automatically receive storage credentials via the `Quix__BlobStorage__Connection__Json` environment variable.
-
-The template includes MinIO for local/development storage. For production, see [Migrating to AWS S3](SETUP.md#migrating-to-aws-s3) in the setup guide.
+Storage is managed through the Quix platform's blob storage binding. Services with `blobStorage: bind: true` in their configuration automatically receive storage credentials via the `Quix__BlobStorage__Connection__Json` environment variable, which is handled by the `quixportal` library.
 
 ### Catalog Configuration
 
@@ -473,7 +461,7 @@ Configure Grafana datasource with your QuixLake API URL.
 
 1. **Compact Small Files**: Use the API's `/compact` endpoint
 2. **Repartition if Needed**: Change partitioning strategy with `/repartition`
-3. **Monitor Storage**: Check file sizes and distribution in MinIO console
+3. **Monitor Storage**: Check file sizes and distribution via the Query UI
 
 ### Memory Management
 
@@ -488,7 +476,6 @@ Configure Grafana datasource with your QuixLake API URL.
 Check service status:
 - Quix DataLake API: `GET https://quixlake-<workspace>.deployments.quix.io/health`
 - Query UI: Access via public URL
-- MinIO Console: Access via MinIO proxy public URL
 - Catalog: `GET https://ts-datalake-catalog-<workspace>.deployments.quix.io/cache-status`
 
 ### Metrics
@@ -496,7 +483,7 @@ Check service status:
 Monitor through Quix platform:
 - Message throughput in Kafka topics
 - CPU and memory usage per service
-- Storage size in MinIO
+- Storage size in blob storage
 - Query execution times in logs
 
 ## Using Your Own Data
@@ -536,10 +523,10 @@ To ingest your own data instead of sample data:
 - Verify data is flowing: Check Kafka topic messages
 - Check catalog registration: `GET /tables` from API
 
-**2. S3 Access Denied**
-- Verify MinIO credentials in secrets
-- Check bucket exists in MinIO
-- Ensure endpoint URL is correct
+**2. Storage Access Denied**
+- Verify blob storage is bound (`blobStorage: bind: true` in app.yaml)
+- Check that `Quix__BlobStorage__Connection__Json` is populated
+- Review deployment logs for credential errors
 
 **3. Slow Queries**
 - Add partition filters to WHERE clause
@@ -608,16 +595,6 @@ HIVE_COLUMNS: customer_id,product_category,year,month
 TIMESTAMP_COLUMN: purchase_date
 ```
 
-### Using AWS S3 Instead of MinIO
-
-For detailed instructions on migrating from MinIO to AWS S3 (or other S3-compatible storage providers), see the [Migrating to AWS S3](SETUP.md#migrating-to-aws-s3) section in the setup guide.
-
-The migration involves:
-1. Creating an S3 bucket in your AWS account
-2. Updating storage variables in relevant deployments
-3. Configuring `s3_user` and `s3_secret` secrets with AWS IAM credentials
-4. Optionally removing MinIO deployments
-
 ### Scaling Considerations
 
 **For High Throughput:**
@@ -641,8 +618,6 @@ The migration involves:
 ```
 template-quixlake/
 ├── images/                     # Documentation images
-├── minio/                      # MinIO application
-├── minio-proxy/                # MinIO proxy application
 ├── postgresql/                 # PostgreSQL application
 ├── quix-ts-datalake-sink/     # Sink application (source included)
 ├── tsbs-quix-data-generator/  # Data generator application
@@ -699,6 +674,5 @@ Built with open source technologies:
 - [DuckDB](https://duckdb.org/) - Fast analytical database
 - [Apache Kafka](https://kafka.apache.org/) - Streaming platform
 - [Apache Parquet](https://parquet.apache.org/) - Columnar storage format
-- [MinIO](https://min.io/) - S3-compatible object storage
 - [PostgreSQL](https://www.postgresql.org/) - Metadata database
 - [TSBS](https://github.com/timescale/tsbs) - Time series benchmarking suite
