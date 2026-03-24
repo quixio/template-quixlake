@@ -1,4 +1,4 @@
-quixstreams[quixdatalake]==3.23.3
+quixstreams[quixdatalake]==3.23.5
 python-dotenv
 requests
 
