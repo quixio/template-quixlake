@@ -32,7 +32,7 @@ deployments:
         description: REST Catalog service URL
         value: http://iceberg-catalog:80
   - name: Quix TS Query UI
-    image: quixcontainerregistry.azurecr.io/quix-datalake-ts-ui:20260324.2-master
+    image: quixcontainerregistry.azurecr.io/quix-datalake-ts-ui:20260420.2-master
     deploymentType: Service
     resources:
       cpu: 200
