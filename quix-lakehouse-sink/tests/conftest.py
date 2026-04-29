@@ -1,5 +1,5 @@
 """
-Shared pytest fixtures for quix-ts-datalake-sink tests.
+Shared pytest fixtures for quix-lakehouse-sink tests.
 """
 import pytest
 from unittest.mock import MagicMock, patch

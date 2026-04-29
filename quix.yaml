@@ -192,9 +192,9 @@ deployments:
         inputType: OutputTopic
         description: Name of the output topic to write to.
         value: tsbs_data_transformed
-  - name: quix-ts-datalake-sink
+  - name: quix-lakehouse-sink
     group: Example pipeline
-    application: quix-ts-datalake-sink
+    application: quix-lakehouse-sink
     version: latest
     deploymentType: Service
     blobStorage:
@@ -223,12 +223,11 @@ deployments:
         value: ts_ms
       - name: CATALOG_URL
         inputType: FreeText
-        description: REST Catalog URL for optional table registration (leave empty to skip)
+        description: REST Catalog URL. Auto-populated by Portal when the workspace has a Lakehouse provisioned; set explicitly to override or to use a self-hosted catalog. Leave empty to skip catalog registration.
         value: http://iceberg-catalog
       - name: CATALOG_AUTH_TOKEN
         inputType: Secret
-        description: If using a catalog, the respective auth token to access it
-        required: true
+        description: Bearer token for the REST Catalog. Auto-populated by Portal when the workspace has a Lakehouse provisioned; set explicitly to override.
         secretKey: config_ui_auth_token
       - name: AUTO_DISCOVER
         inputType: FreeText
@@ -236,11 +235,11 @@ deployments:
         value: true
       - name: CATALOG_NAMESPACE
         inputType: FreeText
-        description: Catalog namespace for table registration
+        description: Catalog namespace for table registration. Auto-populated by Portal when the workspace has a Lakehouse provisioned; defaults to "default".
         value: default
       - name: BATCH_SIZE
         inputType: FreeText
-        description: Number of messages to batch before writing to S3
+        description: Number of messages to batch before writing to blob storage
         value: 1000
       - name: COMMIT_INTERVAL
         inputType: FreeText
@@ -268,7 +267,7 @@ deployments:
         value: INFO
       - name: MAX_WRITE_WORKERS
         inputType: FreeText
-        description: How many files can be written in parallel to S3 at once (based on partitioning + batch size)
+        description: How many files can be written in parallel to blob storage at once (based on partitioning + batch size)
         value: 10
 
 # This section describes the Topics of the data pipeline

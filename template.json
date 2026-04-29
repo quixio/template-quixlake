@@ -1,9 +1,9 @@
 {
   "TemplateId": "quixlake",
-  "Name": "QuixLake v2 Timeseries Preview (Experimental)",
+  "Name": "Quix Lakehouse Timeseries (Preview)",
   "SshUrl": "https://github.com/quixio/template-quixlake.git",
   "Branch": "main",
-  "Description": "This template provides early access to the Timeseries data management and queries feature of QuixLake v2. Deploy this template to test the upcoming functionality and provide feedback before it becomes fully integrated into the Quix platform. Features and APIs may change.",
+  "Description": "This template provides early access to the Quix Lakehouse Timeseries feature. It includes the Lakehouse infrastructure (Catalog, Query API, Data Explorer UI, Postgres) and the Quix Lakehouse Sink for streaming Kafka data into the lakehouse. Deploy this template to evaluate the upcoming functionality and provide feedback before it becomes fully integrated into Quix Cloud. Features and APIs may change.",
   "Tags": {
     "languages": ["python"],
     "category": ["sample", "demo", "experimental", "preview"]

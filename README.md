@@ -1,11 +1,11 @@
-# Quix DataLake Timeseries
+# Quix Lakehouse Timeseries
 
-> **Experimental Preview**
+> **Preview**
 >
-> This template provides early access to the **Timeseries data management and queries** feature of Quix DataLake.
-> Deploy this template to test the functionality and provide feedback before it becomes fully integrated into the Quix platform.
+> This template provides early access to the **Quix Lakehouse Timeseries** feature.
+> Deploy this template to evaluate the functionality and provide feedback before it becomes fully integrated into Quix Cloud.
 
-A real-time data lake platform for streaming time-series data from Kafka into queryable storage.
+A real-time lakehouse platform for streaming time-series data from Kafka into queryable storage.
 
 ## What Problem Does This Solve?
 
@@ -31,9 +31,9 @@ In short: It's a streaming-first alternative to traditional data warehouses, opt
 
 ## Overview
 
-Quix DataLake Timeseries is a production-ready data lake platform that enables real-time ingestion, storage, and querying of streaming data. It combines Apache Kafka for streaming, S3/Azure/GCP for object storage, Hive-partitioned Parquet for the table format, and DuckDB for blazing-fast SQL analytics.
+Quix Lakehouse Timeseries is a production-ready lakehouse platform that enables real-time ingestion, storage, and querying of streaming data. It combines Apache Kafka for streaming, S3/Azure/GCP for object storage, Hive-partitioned Parquet for the table format, and DuckDB for blazing-fast SQL analytics.
 
-This template deploys a fully configured QuixLake instance with:
+This template deploys a fully configured Quix Lakehouse instance with:
 - Pre-built, production-ready container images for core services
 - Example data pipeline with Time Series Benchmark Suite (TSBS) data
 - Interactive query UI for data exploration
@@ -41,11 +41,11 @@ This template deploys a fully configured QuixLake instance with:
 
 ## Architecture
 
-### DataLake Infrastructure
+### Lakehouse Infrastructure
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│                 Quix DataLake Timeseries                 │
+│                 Quix Lakehouse Timeseries                │
 │                                                          │
 │  ┌─────────────────┐      ┌─────────────────────────┐  │
 │  │  REST Catalog   │◄────►│  PostgreSQL Database    │  │
@@ -113,7 +113,7 @@ This template deploys a fully configured QuixLake instance with:
 │           │                                              │
 │           v                                              │
 │  ┌─────────────────────────┐                            │
-│  │ Quix TS Datalake Sink   │  Write to DataLake        │
+│  │ Quix Lakehouse Sink     │  Write to Lakehouse       │
 │  │      (Service)          │                            │
 │  │                         │  - Batch messages          │
 │  │  ┌──────────────────┐   │  - Partition data         │
@@ -125,7 +125,7 @@ This template deploys a fully configured QuixLake instance with:
 │  └────────┬────────────────┘                            │
 │           │                                              │
 │           v                                              │
-│     [To DataLake]                                        │
+│     [To Lakehouse]                                       │
 │      Blob Storage                                        │
 │                                                          │
 └──────────────────────────────────────────────────────────┘
@@ -133,7 +133,7 @@ This template deploys a fully configured QuixLake instance with:
 
 ## Dependencies
 
-This template uses the Quix DataLake Timeseries platform components:
+This template uses the Quix Lakehouse Timeseries platform components:
 
 ### Core Services
 
@@ -141,7 +141,7 @@ This template uses the Quix DataLake Timeseries platform components:
 |-----------|-------------|
 | `quix-ts-datalake-catalog` | REST Catalog service with PostgreSQL backend for table management, partition tracking, and manifest storage |
 | `quix-ts-datalake-api` | Query API supporting SQL queries via DuckDB, table compaction, and partition management (~2ms query performance) |
-| `quix-ts-datalake-sink` | Kafka sink that streams data to blob storage as Hive-partitioned Parquet files with automatic catalog registration |
+| `quix-lakehouse-sink` | Kafka sink that streams data to blob storage as Hive-partitioned Parquet files with automatic catalog registration |
 | `quix-ts-datalake-ui` | Web-based SQL query interface |
 
 ### Client Libraries
@@ -185,14 +185,15 @@ Metadata catalog service featuring:
 
 ### Data Pipeline Components
 
-#### 4. **Quix TS Datalake Sink**
+#### 4. **Quix Lakehouse Sink**
 Kafka-to-S3 sink using `quixstreams[quixdatalake]`:
 - Writes streaming data as Hive-partitioned Parquet files
 - Supports time-based and custom partitioning
-- Automatically registers tables in catalog
+- Automatically registers tables in the Lakehouse catalog
 - Automatic schema detection from data
+- On Quix Cloud, the Lakehouse catalog connection is auto-injected by Portal when the workspace has a Lakehouse provisioned (set deployment variables explicitly to override).
 
-[View detailed README](./quix-ts-datalake-sink/README.md)
+[View detailed README](./quix-lakehouse-sink/README.md)
 
 #### 5. **TSBS Data Generator**
 Generates realistic time-series benchmark data for testing:
@@ -240,7 +241,7 @@ Database backend for the Catalog, storing:
 
 1. **Deploy to Quix**
    - Log in to your Quix account
-   - Navigate to Templates → "QuixLake Template"
+   - Navigate to Templates → "Quix Lakehouse Timeseries (Preview)"
    - Click "Deploy template"
 
 2. **Configure Secrets**
@@ -307,7 +308,7 @@ AUTO_DISCOVER: true                  # Auto-register in catalog
 MAX_WRITE_WORKERS: 10                # Parallel upload threads
 ```
 
-See `quix.yaml` for complete configuration options and the [sink README](./quix-ts-datalake-sink/README.md) for detailed documentation.
+See `quix.yaml` for complete configuration options and the [sink README](./quix-lakehouse-sink/README.md) for detailed documentation.
 
 ## Data Flow
 
@@ -495,7 +496,7 @@ To ingest your own data instead of sample data:
    - Publish to a Kafka topic in your Quix environment
 
 2. **Configure the Sink**
-   Update the `quix-ts-datalake-sink` deployment:
+   Update the `quix-lakehouse-sink` deployment:
    ```yaml
    input: your-topic-name
    TABLE_NAME: your-table-name
@@ -542,7 +543,7 @@ To ingest your own data instead of sample data:
 
 Enable debug logging:
 ```yaml
-# In quix-ts-datalake-sink
+# In quix-lakehouse-sink
 LOGLEVEL: DEBUG
 
 # In Query UI
@@ -619,7 +620,7 @@ TIMESTAMP_COLUMN: purchase_date
 template-quixlake/
 ├── images/                     # Documentation images
 ├── postgresql/                 # PostgreSQL application
-├── quix-ts-datalake-sink/     # Sink application (source included)
+├── quix-lakehouse-sink/       # Sink application (source included)
 ├── tsbs-quix-data-generator/  # Data generator application
 ├── tsbs-transformer/          # Transformer application
 ├── quix.yaml                  # Quix deployment configuration
@@ -633,7 +634,7 @@ Note: Core services (API, UI, Catalog) use pre-built container images from Quix 
 
 ### Customizing the Sink
 
-The sink application is in `quix-ts-datalake-sink/` and uses `quixstreams[quixdatalake]`. To customize:
+The sink application is in `quix-lakehouse-sink/` and uses `quixstreams[quixdatalake]`. To customize:
 
 1. Edit `main.py` to adjust configuration or add pre-processing
 2. The core sink logic is provided by `QuixTSDataLakeSink` from QuixStreams

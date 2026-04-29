@@ -1,5 +1,5 @@
 """
-Core logic tests for quix-ts-datalake-sink.
+Core logic tests for quix-lakehouse-sink.
 
 These tests verify the core transformation and validation logic
 without requiring complex module mocking. They test the functions

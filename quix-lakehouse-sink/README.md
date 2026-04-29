@@ -1,6 +1,10 @@
-# Quix TS Datalake Sink
+# Quix Lakehouse Sink
 
-This connector consumes time-series data from a Kafka topic and writes it to blob storage (AWS S3, Azure, GCP, MinIO) as Hive-partitioned Parquet files, with optional REST Catalog registration for data lake query API.
+This connector consumes time-series data from a Kafka topic and writes it to blob storage (AWS S3, Azure, GCP, MinIO) as Hive-partitioned Parquet files, with REST Catalog registration for the Quix Lakehouse query API.
+
+When deployed inside a Quix Cloud workspace that has a Lakehouse provisioned, the catalog connection (`CATALOG_URL`, `CATALOG_AUTH_TOKEN`, `CATALOG_NAMESPACE`) is auto-injected by Portal as defaults — set them explicitly only to override (for example, to point at a self-hosted catalog). Outside Quix Cloud (or in workspaces without a Lakehouse), set the catalog variables manually as you would any other deployment variable.
+
+> **⚠️ Breaking change — connector identifier rename.** The library identifier for this connector has changed from `quixlake-timeseries-destination` to `lakehouse-sink`. Existing deployments that resolve the connector by the old ID will need to be updated, and any external links / catalog index entries pointing at `quixlake-timeseries-destination` will stop resolving. Coordinate the Connector Library catalog update with this change.
 
 ## Features
 
@@ -91,19 +95,22 @@ Storage credentials are provided via the `Quix__BlobStorage__Connection__Json` e
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `S3_PREFIX` | Path prefix for data files within the bucket | `data` |
 | `TABLE_NAME` | Table name for data organization and registration | Uses topic name |
 | `HIVE_COLUMNS` | Comma-separated list of columns for Hive partitioning | `region,datacenter,hostname` |
 | `TIMESTAMP_COLUMN` | Column containing timestamp values for time extraction | `ts_ms` |
 
-### Catalog Integration (Optional)
+The path prefix within the bucket is fixed at `data-lake/time-series/` and combined with the auto-injected `Quix__Workspace__Id` to give workspace-scoped paths of the form `{workspaceId}/data-lake/time-series/{table_name}/...`.
+
+### Catalog Integration
+
+On Quix Cloud, when the workspace has a Lakehouse provisioned, Portal auto-injects sensible defaults for `CATALOG_URL`, `CATALOG_AUTH_TOKEN`, and `CATALOG_NAMESPACE`. Set the variables explicitly on the deployment to override (for example, to point at a self-hosted catalog or skip registration entirely).
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `CATALOG_URL` | REST Catalog URL for table registration (leave empty to skip) | (empty) |
-| `CATALOG_AUTH_TOKEN` | Auth token for REST Catalog access | (empty) |
-| `AUTO_DISCOVER` | Automatically register table on first write | `true` |
-| `CATALOG_NAMESPACE` | Catalog namespace for table registration | `default` |
+| `CATALOG_URL` | REST Catalog URL for table registration. Leave empty to skip. | Auto-injected by Portal when a Lakehouse is provisioned; otherwise empty. |
+| `CATALOG_AUTH_TOKEN` | Bearer token for REST Catalog access. | Auto-injected by Portal when a Lakehouse is provisioned; otherwise empty. |
+| `CATALOG_NAMESPACE` | Catalog namespace for table registration. | `default` |
+| `AUTO_DISCOVER` | Automatically register table on first write. | `true` |
 
 ### Kafka Configuration
 

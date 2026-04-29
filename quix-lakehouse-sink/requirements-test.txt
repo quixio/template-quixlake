@@ -1,0 +1,4 @@
+# Test dependencies for quix-lakehouse-sink
+-r requirements.txt
+pytest
+pytest-mock

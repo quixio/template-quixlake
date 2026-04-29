@@ -1,4 +1,4 @@
-name: quix-ts-datalake-sink
+name: quix-lakehouse-sink
 language: python
 blobStorage:
   bind: true
@@ -26,18 +26,18 @@ variables:
 - name: CATALOG_URL
   inputType: FreeText
   multiline: false
-  description: REST Catalog URL for optional table registration (leave empty to skip)
+  description: REST Catalog URL. Auto-populated by Portal when the workspace has a Lakehouse provisioned; set explicitly here to override or to use a self-hosted catalog. Leave empty to skip catalog registration.
 - name: CATALOG_AUTH_TOKEN
   inputType: Secret
   multiline: false
-  description: If using a catalog, the respective auth token to access it
+  description: Bearer token for the REST Catalog. Auto-populated by Portal when the workspace has a Lakehouse provisioned; set explicitly here to override.
 - name: AUTO_DISCOVER
   inputType: FreeText
   description: Automatically register table in REST Catalog on first write
   defaultValue: true
 - name: CATALOG_NAMESPACE
   inputType: FreeText
-  description: Catalog namespace for table registration
+  description: Catalog namespace for table registration. Auto-populated by Portal when the workspace has a Lakehouse provisioned; defaults to "default".
   defaultValue: default
 - name: BATCH_SIZE
   inputType: FreeText
@@ -75,4 +75,4 @@ variables:
 dockerfile: dockerfile
 runEntryPoint: main.py
 defaultFile: main.py
-libraryItemId: quixlake-timeseries-destination
+libraryItemId: lakehouse-sink

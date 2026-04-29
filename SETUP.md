@@ -1,8 +1,8 @@
-# QuixLake Initial Setup Guide
+# Quix Lakehouse Initial Setup Guide
 
-> **Note:** This setup guide is for the experimental QuixLake v2 Timeseries Preview. Configuration options may change before final platform integration.
+> **Note:** This setup guide is for the Quix Lakehouse Timeseries Preview. Configuration options may change before final platform integration.
 
-This guide walks you through the initial configuration of the QuixLake template, including setting up secrets and configuring storage.
+This guide walks you through the initial configuration of the Quix Lakehouse template, including setting up secrets and configuring storage.
 
 ## Step 1: Configure Secrets
 
@@ -73,7 +73,7 @@ To test your setup with sample data, you first need to switch to the "Example pi
 Then:
 
 1. Start the **TSBS Data Generator** job to produce sample time-series data
-2. The **TSBS Transformer** and **Quix TS Datalake Sink** services will process and store the data
+2. The **TSBS Transformer** and **Quix Lakehouse Sink** services will process and store the data
 3. Open the **Query UI** (Data Explorer) to run queries:
    ```sql
    SELECT * FROM sensordata LIMIT 10;

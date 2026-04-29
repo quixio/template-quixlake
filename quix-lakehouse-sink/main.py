@@ -1,5 +1,5 @@
 """
-Quix TS Datalake Sink - Main Entry Point
+Quix Lakehouse Sink - Main Entry Point
 
 This application consumes data from a Kafka topic and writes it to blob storage as
 Hive-partitioned Parquet files with optional Iceberg catalog registration.
@@ -8,10 +8,15 @@ Blob storage is configured via the Quix__BlobStorage__Connection__Json environme
 which is automatically handled by the quixportal library. The bucket name is extracted
 automatically from this configuration.
 
+On Quix Cloud, when the workspace has a Lakehouse provisioned, Portal also auto-injects
+CATALOG_URL, CATALOG_AUTH_TOKEN, and CATALOG_NAMESPACE as defaults — set the deployment
+variables explicitly to override.
+
 File paths follow the workspace-aware structure:
     {workspaceId}/data-lake/time-series/{table_name}/...
 """
 import os
+import re
 import logging
 
 from quixstreams import Application
@@ -26,6 +31,21 @@ logger = logging.getLogger(__name__)
 
 # Constant for time-series data lake path structure
 TIMESERIES_PREFIX = "data-lake/time-series"
+
+
+_TABLE_NAME_PATTERN = re.compile(r'^[a-zA-Z0-9][a-zA-Z0-9._-]*$')
+
+
+def _positive_int(env_var: str, default: str) -> int:
+    """Read an env var as a positive integer, raising a clear error on bad input."""
+    raw = os.getenv(env_var, default)
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        raise ValueError(f"{env_var} must be a positive integer, got '{raw}'")
+    if value <= 0:
+        raise ValueError(f"{env_var} must be a positive integer, got {value}")
+    return value
 
 
 def parse_hive_columns(columns_str: str) -> list:
@@ -47,13 +67,19 @@ def parse_hive_columns(columns_str: str) -> list:
 app = Application(
     consumer_group=os.getenv("CONSUMER_GROUP", "s3_direct_sink_v1.0"),
     auto_offset_reset=os.getenv("AUTO_OFFSET_RESET", "latest"),
-    commit_interval=int(os.getenv("COMMIT_INTERVAL", "30"))
+    commit_interval=_positive_int("COMMIT_INTERVAL", "30"),
+    commit_every=_positive_int("BATCH_SIZE", "1000")
 )
 
 # Parse configuration
 hive_columns = parse_hive_columns(os.getenv("HIVE_COLUMNS", ""))
 auto_discover = os.getenv("AUTO_DISCOVER", "true").lower() == "true"
 table_name = os.getenv("TABLE_NAME") or os.environ["input"]
+if not _TABLE_NAME_PATTERN.match(table_name):
+    raise ValueError(
+        f"Invalid table name '{table_name}'. Table names must start with a letter or digit "
+        f"and may only contain letters, digits, dots (.), hyphens (-), and underscores (_)."
+    )
 
 # Workspace ID (automatically injected by Quix platform)
 workspace_id = os.getenv("Quix__Workspace__Id", "")
@@ -73,7 +99,9 @@ blob_sink = QuixTSDataLakeSink(
     auto_discover=auto_discover,
     namespace=os.getenv("CATALOG_NAMESPACE", "default"),
     auto_create_bucket=True,
-    max_workers=int(os.getenv("MAX_WRITE_WORKERS", "10"))
+    max_workers=_positive_int("MAX_WRITE_WORKERS", "10"),
+    on_client_connect_success=lambda: logger.info("Connected to blob storage."),
+    on_client_connect_failure=lambda e: logger.error(f"Failed to connect to blob storage: {e}"),
 )
 
 # Create streaming dataframe and attach sink
@@ -84,7 +112,7 @@ sdf.sink(blob_sink)
 
 # Log startup configuration
 storage_path = f"{workspace_id}/{TIMESERIES_PREFIX}" if workspace_id else TIMESERIES_PREFIX
-logger.info("Starting Quix TS Datalake Sink")
+logger.info("Starting Quix Lakehouse Sink")
 logger.info(f"  Input topic: {os.environ['input']}")
 logger.info(f"  Storage path: {storage_path}/{table_name}")
 logger.info(f"  Partitioning: {hive_columns if hive_columns else 'none'}")
