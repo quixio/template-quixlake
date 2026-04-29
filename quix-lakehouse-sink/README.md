@@ -103,12 +103,12 @@ The path prefix within the bucket is fixed at `data-lake/time-series/` and combi
 
 ### Catalog Integration
 
-On Quix Cloud, when the workspace has a Lakehouse provisioned, Portal auto-injects sensible defaults for `CATALOG_URL`, `CATALOG_AUTH_TOKEN`, and `CATALOG_NAMESPACE`. Set the variables explicitly on the deployment to override (for example, to point at a self-hosted catalog or skip registration entirely).
+On Quix Cloud, when the workspace has a Lakehouse provisioned, Portal auto-injects `CATALOG_URL` and `CATALOG_AUTH_TOKEN` at deployment time — they are NOT exposed as configurable form fields. To override (for example, to point at a self-hosted catalog or to skip registration entirely), add them as deployment variables on the deployed sink after creation. To disable catalog registration, set `CATALOG_URL` to an empty value as a deployment variable.
+
+The following catalog variables remain configurable from the connector setup form:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `CATALOG_URL` | REST Catalog URL for table registration. Leave empty to skip. | Auto-injected by Portal when a Lakehouse is provisioned; otherwise empty. |
-| `CATALOG_AUTH_TOKEN` | Bearer token for REST Catalog access. | Auto-injected by Portal when a Lakehouse is provisioned; otherwise empty. |
 | `CATALOG_NAMESPACE` | Catalog namespace for table registration. | `default` |
 | `AUTO_DISCOVER` | Automatically register table on first write. | `true` |
 

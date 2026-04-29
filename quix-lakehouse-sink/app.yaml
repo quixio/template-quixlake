@@ -23,21 +23,13 @@ variables:
   inputType: FreeText
   description: Column containing timestamp values to extract year/month/day/hour from
   defaultValue: ts_ms
-- name: CATALOG_URL
-  inputType: FreeText
-  multiline: false
-  description: REST Catalog URL. Auto-populated by Portal when the workspace has a Lakehouse provisioned; set explicitly here to override or to use a self-hosted catalog. Leave empty to skip catalog registration.
-- name: CATALOG_AUTH_TOKEN
-  inputType: Secret
-  multiline: false
-  description: Bearer token for the REST Catalog. Auto-populated by Portal when the workspace has a Lakehouse provisioned; set explicitly here to override.
 - name: AUTO_DISCOVER
   inputType: FreeText
   description: Automatically register table in REST Catalog on first write
   defaultValue: true
 - name: CATALOG_NAMESPACE
   inputType: FreeText
-  description: Catalog namespace for table registration. Auto-populated by Portal when the workspace has a Lakehouse provisioned; defaults to "default".
+  description: Catalog namespace for table registration
   defaultValue: default
 - name: BATCH_SIZE
   inputType: FreeText
